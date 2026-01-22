@@ -3,519 +3,607 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GUI Architect v8.0</title>
+    <title>GUI Architect v9 (Vanilla 1.21)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --glass-bg: rgba(20, 20, 30, 0.65);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --glass-highlight: rgba(255, 255, 255, 0.05);
-            --accent: #5e81ac;
-            --accent-glow: rgba(94, 129, 172, 0.5);
-            --text-main: #eceff4;
-            --text-muted: #d8dee9;
-            --slot-bg: rgba(0, 0, 0, 0.3);
-            --slot-hover: rgba(255, 255, 255, 0.1);
+            --bg-app: #1e1e1e;
+            --bg-panel: #252526;
+            --bg-header: #2d2d2d;
+            --border: #3e3e42;
+            --accent: #007acc; /* VS Code Blue */
+            --accent-hover: #0062a3;
+            --text-main: #cccccc;
+            --text-bright: #ffffff;
+            --input-bg: #3c3c3c;
+            
+            /* Minecraft Accurate Colors */
+            --mc-bg: #c6c6c6;
+            --mc-dark: #373737;
+            --mc-light: #ffffff;
+            --mc-slot: #8b8b8b;
+            --mc-hover: #ffffff80;
         }
 
-        * { box-sizing: border-box; user-select: none; }
+        * { box-sizing: border-box; outline: none; }
         
         body {
             margin: 0;
-            background: url('https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/stone.png') repeat;
-            background-size: 64px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-app);
             color: var(--text-main);
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: 'Inter', sans-serif;
             height: 100vh;
-        }
-
-        /* Dark overlay for background readability */
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(10, 12, 16, 0.85);
-            z-index: -1;
-            backdrop-filter: blur(3px);
-        }
-
-        /* --- Main Container (Glass Effect) --- */
-        .container {
-            display: flex;
-            width: 90vw;
-            height: 85vh;
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
-            overflow: hidden;
-        }
-
-        /* --- Sidebar (Item Palette) --- */
-        .palette {
-            width: 320px;
             display: flex;
             flex-direction: column;
-            border-right: 1px solid var(--glass-border);
-            background: rgba(0,0,0,0.2);
+            overflow: hidden;
         }
 
-        .search-bar {
-            padding: 15px;
-            border-bottom: 1px solid var(--glass-border);
+        /* HEADER */
+        header {
+            height: 45px;
+            background: var(--bg-header);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            font-size: 13px;
+        }
+        .brand { font-weight: 600; color: var(--text-bright); letter-spacing: 0.5px; }
+        .status { font-family: 'JetBrains Mono'; color: #888; }
+
+        /* LAYOUT */
+        .workspace {
+            display: flex;
+            height: calc(100vh - 45px);
         }
 
-        .search-bar input {
-            width: 100%;
+        /* SIDEBARS */
+        .sidebar {
+            width: 320px;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .sidebar.right {
+            border-right: none;
+            border-left: 1px solid var(--border);
+        }
+
+        .panel-head {
             padding: 10px 15px;
-            border-radius: 8px;
-            border: 1px solid var(--glass-border);
-            background: rgba(0, 0, 0, 0.3);
-            color: white;
-            outline: none;
-            transition: 0.2s;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(0,0,0,0.1);
         }
 
-        .search-bar input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 10px var(--accent-glow);
+        /* LIBRARY GRID */
+        .search-box { padding: 10px; border-bottom: 1px solid var(--border); }
+        .search-input {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid transparent;
+            color: var(--text-bright);
+            padding: 6px 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            border-radius: 2px;
         }
+        .search-input:focus { border-color: var(--accent); }
 
-        .item-grid {
+        .library {
             flex: 1;
+            overflow-y: auto;
+            padding: 10px;
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
             grid-auto-rows: 40px;
-            gap: 8px;
-            padding: 15px;
-            overflow-y: auto;
+            gap: 6px;
             align-content: start;
         }
 
-        .item-grid::-webkit-scrollbar { width: 8px; }
-        .item-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
-
-        /* Draggable Item in Palette */
-        .palette-item {
-            width: 40px;
-            height: 40px;
-            background: var(--slot-bg);
-            border-radius: 6px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: grab;
-            transition: transform 0.1s, background 0.2s;
+        /* LIBRARY ITEM */
+        .lib-item {
             position: relative;
+            background: #333;
+            border-radius: 3px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
-
-        .palette-item:hover {
-            background: var(--slot-hover);
-            transform: scale(1.05);
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .palette-item img {
-            width: 32px;
-            height: 32px;
+        .lib-item:hover { border-color: #666; background: #3a3a3a; }
+        .lib-item.active { border-color: var(--accent); background: rgba(0, 122, 204, 0.2); }
+        
+        /* IMAGE & SKELETON LOADING */
+        .item-img {
+            width: 32px; height: 32px;
             image-rendering: pixelated;
-            pointer-events: none; /* Crucial for drag */
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none; /* Drag helper */
         }
+        .item-img.loaded { opacity: 1; }
+        
+        /* Skeleton Pulse */
+        .lib-item::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(90deg, #333, #444, #333);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            z-index: 0;
+        }
+        @keyframes pulse { 0%{background-position: 200% 0} 100%{background-position: -200% 0} }
+        .lib-item.has-img::before { display: none; }
 
-        /* --- Main Editor Area --- */
-        .editor {
+        /* CANVAS AREA */
+        .canvas {
             flex: 1;
+            background: #121212;
+            background-image: radial-gradient(#333 1px, transparent 1px);
+            background-size: 20px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            position: relative;
+            padding: 40px;
+            overflow-y: auto; /* Fix for lower page content */
         }
 
-        .gui-window {
-            background: rgba(198, 198, 198, 1); /* Classic Minecraft Grey base */
-            padding: 4px;
-            border: 2px solid #000;
-            border-radius: 2px;
-            box-shadow: inset 2px 2px 0px #fff, inset -2px -2px 0px #555;
-            position: relative;
-            transform: scale(2); /* Zoom for visibility */
+        .gui-container {
+            background: var(--mc-bg);
+            padding: 8px;
+            border-top: 4px solid var(--mc-light);
+            border-left: 4px solid var(--mc-light);
+            border-right: 4px solid var(--mc-dark);
+            border-bottom: 4px solid var(--mc-dark);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: inline-block;
         }
 
-        .gui-header {
-            font-family: 'Minecraft', monospace;
-            color: #404040;
-            margin-bottom: 2px;
-            padding-left: 2px;
-            font-size: 10px;
-        }
-
-        .inventory-grid {
+        .gui-grid {
             display: grid;
-            grid-template-columns: repeat(9, 18px);
-            grid-template-rows: repeat(6, 18px);
-            gap: 0;
+            grid-template-columns: repeat(9, 36px); /* 18px * 2 for high DPI look */
+            gap: 4px;
         }
 
         .slot {
-            width: 18px;
-            height: 18px;
-            background: #8b8b8b;
-            border: 1px solid #373737;
-            box-shadow: inset 1px 1px 0px #373737, inset -1px -1px 0px #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            width: 36px; height: 36px;
+            background: var(--mc-slot);
+            border-top: 2px solid var(--mc-dark);
+            border-left: 2px solid var(--mc-dark);
+            border-bottom: 2px solid var(--mc-light);
+            border-right: 2px solid var(--mc-light);
+            position: relative;
             cursor: pointer;
         }
-
-        .slot:hover {
-            background: #a0a0a0;
-        }
-
-        /* Item inside a slot */
-        .slot-item {
-            width: 16px;
-            height: 16px;
-            image-rendering: pixelated;
-        }
-
-        /* --- Code Output Panel --- */
-        .code-panel {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            width: 300px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 1px solid var(--glass-border);
-            border-radius: 8px;
-            padding: 15px;
-            color: #a3be8c;
-            font-family: monospace;
-            font-size: 12px;
-            backdrop-filter: blur(10px);
-        }
-
-        .code-header {
-            display: flex;
-            justify-content: space-between;
-            color: white;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-
-        #codeOutput {
-            width: 100%;
-            height: 100px;
-            background: transparent;
-            border: none;
-            color: inherit;
-            resize: none;
-            outline: none;
-        }
-
-        button {
-            background: var(--accent);
-            border: none;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-        }
+        .slot:hover .slot-overlay { background: var(--mc-hover); }
+        .slot.selected { outline: 2px solid var(--accent); z-index: 10; }
         
-        button:hover { background: #81a1c1; }
-
-        /* Loading Spinner */
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #888;
-            font-style: italic;
-        }
-
-        /* Tooltip */
-        .tooltip {
-            position: absolute;
-            background: rgba(0,0,0,0.9);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
+        .slot img {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 32px; height: 32px;
+            image-rendering: pixelated;
             pointer-events: none;
-            font-size: 12px;
-            z-index: 1000;
-            border: 1px solid #555;
-            display: none;
+        }
+        .slot-overlay {
+            position: absolute; inset: 0; pointer-events: none;
         }
 
+        /* PROPERTIES */
+        .props { padding: 15px; overflow-y: auto; flex: 1; }
+        .form-group { margin-bottom: 15px; }
+        .label { font-size: 11px; color: #888; margin-bottom: 5px; display: block; }
+        
+        input[type="text"], textarea {
+            width: 100%; background: var(--input-bg); border: 1px solid #333;
+            color: var(--text-bright); padding: 8px; font-family: 'JetBrains Mono';
+            font-size: 12px;
+        }
+        input:focus, textarea:focus { border-color: var(--accent); }
+
+        .btn {
+            width: 100%; padding: 8px; background: var(--accent); color: white;
+            border: none; cursor: pointer; font-size: 12px; font-weight: 600;
+        }
+        .btn:hover { background: var(--accent-hover); }
+        .btn-red { background: #d94040; margin-top: 5px; }
+        .btn-red:hover { background: #b03030; }
+
+        .code-box {
+            background: #111; border: 1px solid #333; padding: 10px;
+            font-family: 'JetBrains Mono'; font-size: 10px; color: #9cdcfe;
+            height: 150px; overflow: auto; white-space: pre; margin-bottom: 10px;
+        }
+
+        /* TOOLTIP */
+        #tooltip {
+            position: fixed; background: rgba(0,0,0,0.9); color: white;
+            border: 1px solid #555; padding: 5px 8px; font-size: 12px;
+            pointer-events: none; display: none; z-index: 999;
+            font-family: 'JetBrains Mono';
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="palette">
-        <div class="search-bar">
-            <input type="text" id="searchBox" placeholder="Search 1,400+ items...">
+<header>
+    <div class="brand">GUI ARCHITECT <span style="color:#666">v9.0</span></div>
+    <div class="status" id="status">Ready</div>
+</header>
+
+<div class="workspace">
+    <div class="sidebar">
+        <div class="panel-head">Vanilla Items (1.21)</div>
+        <div class="search-box">
+            <input type="text" class="search-input" id="search" placeholder="Search (e.g., 'mace', 'cherry')..." autocomplete="off">
         </div>
-        <div class="item-grid" id="itemPalette">
-            <div class="loading" id="loadingText">Loading Resources...</div>
+        <div class="library" id="library"></div>
+    </div>
+
+    <div class="canvas">
+        <input type="text" id="gui-title" value="My Menu" style="background:transparent; border:none; color:white; font-size:20px; text-align:center; margin-bottom:20px; border-bottom:1px solid #333; padding:5px; width:300px;">
+        
+        <div class="gui-container">
+            <div class="gui-grid" id="grid"></div>
+        </div>
+
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button class="btn" style="width: auto; background: #333;" onclick="resize(27)">3 Rows</button>
+            <button class="btn" style="width: auto; background: #333;" onclick="resize(54)">6 Rows</button>
         </div>
     </div>
 
-    <div class="editor">
-        <div class="gui-window">
-            <div class="gui-header">Chest</div>
-            <div class="inventory-grid" id="guiGrid">
-                </div>
-        </div>
-        
-        <div class="code-panel">
-            <div class="code-header">
-                <span>YAML Config</span>
-                <button onclick="copyCode()">Copy</button>
+    <div class="sidebar right">
+        <div class="panel-head">Properties</div>
+        <div class="props">
+            <div class="form-group">
+                <span class="label">Material ID</span>
+                <input type="text" id="p-id" readonly style="color:#666">
             </div>
-            <textarea id="codeOutput" readonly></textarea>
+            <div class="form-group">
+                <span class="label">Display Name</span>
+                <input type="text" id="p-name" placeholder="&bDiamond Sword" oninput="updateData()">
+            </div>
+            <div class="form-group">
+                <span class="label">Lore</span>
+                <textarea id="p-lore" rows="5" placeholder="&7Line 1&#10;&7Line 2" oninput="updateData()"></textarea>
+            </div>
+            <button class="btn btn-red" onclick="removeItem()">Remove Item</button>
+
+            <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
+            
+            <div class="form-group">
+                <span class="label">Java Code</span>
+                <div class="code-box" id="code"></div>
+                <button class="btn" onclick="copyCode()">Copy Code</button>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="tooltip" id="tooltip"></div>
+<div id="tooltip"></div>
 
 <script>
-    // --- 1. COMPREHENSIVE 1.21 ITEM LIST (Compressed) ---
-    // In a real app, you'd fetch this. We list prefixes to generate thousands.
-    const materialList = [
-        "acacia", "amethyst", "andesite", "bamboo", "barrel", "basalt", "beacon", "bedrock", "bee_nest", "beehive",
-        "beetroot", "bell", "birch", "blackstone", "blast_furnace", "blaze_powder", "blaze_rod", "bone", "book",
-        "bow", "bowl", "bread", "brewing_stand", "brick", "bucket", "bundle", "cactus", "cake", "campfire", "candle",
-        "carrot", "cartography_table", "cauldron", "chain", "charcoal", "chest", "cherry", "chicken", "chorus", 
-        "clay", "clock", "coal", "cobblestone", "cod", "comparator", "compass", "composter", "conduit", 
-        "copper", "cornflower", "cow_spawn_egg", "crafter", "crafting_table", "creeper_head", "crossbow", 
-        "dark_oak", "daylight_detector", "dead_bush", "debug_stick", "deepslate", "diamond", "diorite", "dirt", 
-        "dispenser", "dragon_egg", "dropper", "egg", "elytra", "emerald", "enchanted_book", "end_crystal", 
-        "end_rod", "end_stone", "ender_chest", "ender_eye", "ender_pearl", "experience_bottle", "farmland", 
-        "feather", "fence", "fermented_spider_eye", "fern", "fire_charge", "firework_rocket", "fishing_rod", 
-        "fletching_table", "flint", "flower_pot", "furnace", "ghast_tear", "glass", "glow_berries", "glowstone", 
-        "gold", "granite", "grass", "gravel", "grindstone", "gunpowder", "hay_block", "heart_of_the_sea", 
-        "honey_bottle", "honeycomb", "hopper", "ice", "ink_sac", "iron", "jukebox", "kelp", "ladder", "lantern", 
-        "lapis", "lava", "lead", "leather", "lectern", "lever", "light", "lily_pad", "lime", "lodestone", 
-        "loom", "magma", "mangrove", "map", "melon", "milk_bucket", "minecart", "moss", "mushroom", "music_disc", 
-        "mutton", "mycelium", "name_tag", "nautilus_shell", "nether_brick", "nether_star", "netherite", 
-        "netherrack", "note_block", "oak", "observer", "obsidian", "painting", "paper", "parrot", "phantom", 
-        "pig", "piston", "planks", "podzol", "poisonous_potato", "porkchop", "potato", "potion", "powder_snow", 
-        "prismarine", "pufferfish", "pumpkin", "purpur", "quartz", "rabbit", "rail", "raw_copper", "raw_gold", 
-        "raw_iron", "red_sand", "redstone", "repeater", "rotten_flesh", "saddle", "salmon", "sand", "scaffolding", 
-        "sculk", "scute", "shears", "sheep", "shield", "shroomlight", "shulker_box", "sign", "slime_ball", 
-        "smithing_table", "smoker", "snow", "soul_sand", "soul_soil", "spawner", "spectral_arrow", "spider_eye", 
-        "sponge", "spruce", "spyglass", "stick", "sticky_piston", "stone", "stonecutter", "string", "sugar", 
-        "suspicious_stew", "sweet_berries", "tnt", "torch", "totem_of_undying", "trapdoor", "trial_key", 
-        "trial_spawner", "trident", "tripwire_hook", "tropical_fish", "tube_coral", "tuff", "turtle_helmet", 
-        "vault", "vine", "wandering_trader", "warped", "water", "wheat", "white_wool", "witch", "wither_skeleton", 
-        "wolf", "wooden_axe", "wooden_hoe", "wooden_pickaxe", "wooden_shovel", "wooden_sword", "writable_book", 
-        "zombie"
+    // --- 1. ASSET PATHS ---
+    // We use mcasset.cloud which mirrors Vanilla textures.
+    const ASSET_ROOT = "https://assets.mcasset.cloud/1.21/assets/minecraft/textures";
+    
+    // --- 2. VANILLA DATABASE GENERATOR (1.21) ---
+    const DB = [];
+    const add = (i) => DB.push(i);
+    
+    // Generator Helpers
+    const wood = ['oak','spruce','birch','jungle','acacia','dark_oak','mangrove','cherry','bamboo','crimson','warped'];
+    const color = ['white','orange','magenta','light_blue','yellow','lime','pink','gray','light_gray','cyan','purple','blue','brown','green','red','black'];
+    const tool = ['sword','shovel','pickaxe','axe','hoe'];
+    const armor = ['helmet','chestplate','leggings','boots'];
+    const mat = ['wooden','stone','iron','golden','diamond','netherite'];
+    const ore = ['coal','iron','copper','gold','redstone','emerald','lapis','diamond','quartz'];
+
+    // Execution
+    wood.forEach(w => {
+        add(w+'_log'); add(w+'_planks'); add(w+'_stairs'); add(w+'_slab'); add(w+'_fence'); 
+        add(w+'_door'); add(w+'_trapdoor'); add(w+'_pressure_plate'); add(w+'_button');
+    });
+    
+    color.forEach(c => {
+        add(c+'_wool'); add(c+'_carpet'); add(c+'_stained_glass'); add(c+'_stained_glass_pane');
+        add(c+'_concrete'); add(c+'_concrete_powder'); add(c+'_bed'); add(c+'_shulker_box'); add(c+'_candle');
+    });
+
+    mat.forEach(m => {
+        tool.forEach(t => add(m+'_'+t));
+        if(m !== 'wooden' && m !== 'stone') armor.forEach(a => add(m+'_'+a));
+    });
+
+    ore.forEach(o => {
+        add(o+'_ore'); add(o+'_block'); 
+        if(!['coal','quartz','redstone'].includes(o)) add('raw_'+o);
+    });
+
+    // 1.21 & Misc Manual Adds
+    const misc = [
+        'crafter','trial_key','ominous_trial_key','mace','breeze_rod','wind_charge','heavy_core',
+        'copper_bulb','chiseled_copper','copper_grate','copper_door','copper_trapdoor',
+        'tuff','tuff_bricks','chiseled_tuff','polished_tuff',
+        'apple','golden_apple','enchanted_golden_apple','bread','cooked_beef','cooked_porkchop','cooked_chicken',
+        'arrow','bow','crossbow','trident','shield','elytra','totem_of_undying','tnt',
+        'bucket','water_bucket','lava_bucket','milk_bucket',
+        'ender_pearl','ender_eye','firework_rocket',
+        'stick','bone','string','leather','flint','feather',
+        'book','paper','writable_book','enchanted_book',
+        'stone','granite','diorite','andesite','deepslate','cobblestone','mossy_cobblestone',
+        'dirt','grass_block','podzol','mycelium','sand','red_sand','gravel','clay',
+        'ice','packed_ice','blue_ice','snow_block',
+        'beacon','conduit','furnace','blast_furnace','smoker','anvil','enchanting_table',
+        'crafting_table','loom','cartography_table','fletching_table','smithing_table','grindstone','stonecutter',
+        'chest','ender_chest','barrel','jukebox','note_block',
+        'barrier','structure_void','light','command_block'
     ];
-
-    // Procedurally generate variants to simulate 1000+ items
-    const fullItemList = [];
-    const variants = ["_block", "_ore", "_ingot", "_helmet", "_chestplate", "_leggings", "_boots", "_pickaxe", "_axe", "_sword", "_shovel", "_hoe", "_door", "_trapdoor", "_planks", "_log", "_leaves", "_sapling"];
+    misc.forEach(i => add(i));
     
-    // Add base items
-    materialList.forEach(m => fullItemList.push(m));
-    
-    // Add simple combos
-    materialList.forEach(m => {
-        variants.forEach(v => {
-            // Very rough filter to avoid "stick_helmet" but good enough for demo
-            if(Math.random() > 0.7) fullItemList.push(m + v); 
-        });
-    });
+    // Sort logic
+    DB.sort();
 
-    // Manual Critical 1.21 Adds
-    fullItemList.push("breeze_rod", "mace", "wind_charge", "crafter", "trial_key", "ominous_trial_key", "copper_bulb", "chiseled_copper", "heavy_core");
+    // --- 3. STATE ---
+    let state = {
+        grid: {},
+        brush: null,
+        selected: null,
+        size: 54,
+        dragSrc: null
+    };
 
-    // Remove duplicates and sort
-    const uniqueItems = [...new Set(fullItemList)].sort();
-
-
-    // --- 2. TEXTURE LOADER ENGINE ---
-    // We use a CDN. We must guess if it's a block or item texture.
-    const CDN_BASE = "https://assets.mcasset.cloud/1.21/assets/minecraft/textures";
-    
-    function getTextureUrl(id) {
-        // Simple heuristic to guess path. 
-        // 1. Try item folder first for tools/items
-        // 2. Try block folder for blocks
-        // In a real app, we would check validity, but we will rely on onerror fallback.
-        
-        if (id.includes("block") || id.includes("ore") || id.includes("plank") || id.includes("log") || id.includes("stone") || id.includes("dirt") || id.includes("grass")) {
-            return `${CDN_BASE}/block/${id}.png`;
-        }
-        return `${CDN_BASE}/item/${id}.png`;
-    }
-
-    // --- 3. UI GENERATION ---
-
-    const itemPalette = document.getElementById('itemPalette');
-    const loadingText = document.getElementById('loadingText');
-    const guiGrid = document.getElementById('guiGrid');
-    const codeOutput = document.getElementById('codeOutput');
-    const searchBox = document.getElementById('searchBox');
-    const tooltip = document.getElementById('tooltip');
-
-    let draggedItem = null;
-    let slotData = {}; // Stores { slotIndex: itemId }
-
-    // Init Inventory Grid (Chest size: 9x6 = 54)
-    function initGrid() {
-        for (let i = 0; i < 54; i++) {
-            const slot = document.createElement('div');
-            slot.classList.add('slot');
-            slot.dataset.index = i;
-            
-            // Drag Drop Events
-            slot.addEventListener('dragover', (e) => e.preventDefault());
-            slot.addEventListener('drop', handleDrop);
-            slot.addEventListener('click', () => clearSlot(i));
-            
-            guiGrid.appendChild(slot);
-        }
-    }
-
-    // Lazy Load the Palette
-    function initPalette() {
-        loadingText.style.display = 'none';
-        
-        uniqueItems.forEach(id => {
-            const div = document.createElement('div');
-            div.classList.add('palette-item');
-            div.dataset.id = id;
-            div.draggable = true;
-            
-            // Image with Fallback Strategy
-            const img = document.createElement('img');
-            img.src = getTextureUrl(id);
-            img.loading = "lazy"; // Native Lazy Loading
-            
-            // If item texture fails, try block texture, then barrier
-            img.onerror = function() {
-                if (this.src.includes("/item/")) {
-                    this.src = this.src.replace("/item/", "/block/");
-                } else if (!this.src.includes("barrier")) {
-                    this.src = "https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/barrier.png";
-                }
-            };
-
-            div.appendChild(img);
-            
-            // Drag Events
-            div.addEventListener('dragstart', (e) => {
-                draggedItem = id;
-                e.dataTransfer.setData('text/plain', id);
-            });
-            
-            // Tooltip
-            div.addEventListener('mousemove', (e) => showTooltip(e, id));
-            div.addEventListener('mouseleave', hideTooltip);
-
-            itemPalette.appendChild(div);
-        });
-    }
-
-    // Search Functionality
-    searchBox.addEventListener('input', (e) => {
-        const term = e.target.value.toLowerCase();
-        const items = document.querySelectorAll('.palette-item');
-        
-        items.forEach(item => {
-            const id = item.dataset.id;
-            if (id.includes(term)) {
-                item.style.display = 'flex';
-            } else {
-                item.style.display = 'none';
-            }
-        });
-    });
-
-    // --- 4. INTERACTION LOGIC ---
-
-    function handleDrop(e) {
-        e.preventDefault();
-        const slotIndex = e.target.closest('.slot').dataset.index;
-        
-        if (draggedItem && slotIndex !== undefined) {
-            slotData[slotIndex] = draggedItem;
-            renderSlot(slotIndex, draggedItem);
-            updateCode();
-        }
-    }
-
-    function renderSlot(index, id) {
-        const slot = guiGrid.children[index];
-        slot.innerHTML = ''; // Clear existing
+    // --- 4. TEXTURE LOADING (THE SMART PART) ---
+    function createIcon(id) {
+        const wrap = document.createElement('div');
+        wrap.className = 'item-wrap';
+        wrap.style.width='100%'; wrap.style.height='100%';
         
         const img = document.createElement('img');
-        img.src = getTextureUrl(id);
-        img.classList.add('slot-item');
-        // Apply same fallback logic
-        img.onerror = function() {
-            if (this.src.includes("/item/")) {
-                this.src = this.src.replace("/item/", "/block/");
-            } else {
-                this.src = "https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/barrier.png";
-            }
-        };
+        img.className = 'item-img';
+        img.loading = "lazy"; // Native browser lazy loading
         
-        slot.appendChild(img);
+        // Default Logic: Check Item Folder first, fall back to Block
+        const name = id.toLowerCase();
+        let primary = `${ASSET_ROOT}/item/${name}.png`;
+        let fallback = `${ASSET_ROOT}/block/${name}.png`;
+
+        // Heuristic override for obvious blocks to save network requests
+        if(id.includes('_log') || id.includes('_planks') || id.includes('_block') || id.includes('_ore') || id.includes('stone') || id.includes('grass') || id.includes('dirt')) {
+            primary = `${ASSET_ROOT}/block/${name}.png`;
+            fallback = `${ASSET_ROOT}/item/${name}.png`;
+        }
+
+        img.src = primary;
+
+        // The Magic Fix: If primary fails, swap source. If that fails, it stays blank (or you can add a barrier)
+        img.onerror = function() {
+            if(this.src === primary) this.src = fallback;
+            // Optional: else this.src = barrier...
+        };
+
+        img.onload = function() {
+            this.classList.add('loaded');
+            wrap.parentElement?.classList.add('has-img'); // Stop skeleton pulse
+        };
+
+        wrap.appendChild(img);
+        return wrap;
     }
 
-    function clearSlot(index) {
-        const slot = guiGrid.children[index];
-        if (slot.innerHTML !== '') {
-            slot.innerHTML = '';
-            delete slotData[index];
+    // --- 5. RENDERERS ---
+    
+    function renderLib(filter) {
+        const lib = document.getElementById('library');
+        lib.innerHTML = '';
+        
+        // Performance limit: Render first 200 matches only
+        let count = 0;
+        
+        for(let id of DB) {
+            if(filter && !id.includes(filter)) continue;
+            if(count > 200) break;
+            
+            const item = document.createElement('div');
+            item.className = 'lib-item';
+            if(state.brush === id) item.classList.add('active');
+            item.title = id; // Tooltip
+            
+            item.onclick = () => setBrush(id);
+            item.appendChild(createIcon(id));
+            
+            lib.appendChild(item);
+            count++;
+        }
+    }
+
+    function renderGrid() {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
+        
+        for(let i=0; i<state.size; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'slot';
+            slot.dataset.i = i;
+            
+            const overlay = document.createElement('div');
+            overlay.className = 'slot-overlay';
+            slot.appendChild(overlay);
+
+            if(state.grid[i]) {
+                const icon = createIcon(state.grid[i].id);
+                // Force load immediately for grid
+                icon.querySelector('img').loading = "eager"; 
+                slot.appendChild(icon);
+            }
+
+            // Events
+            slot.onmousedown = (e) => onSlotClick(e, i);
+            slot.onmouseenter = (e) => onSlotEnter(e, i);
+            slot.onmouseleave = () => hideTooltip();
+            
+            // Drag
+            slot.draggable = true;
+            slot.ondragstart = (e) => onDragStart(e, i);
+            slot.ondragover = (e) => { if(!state.brush) e.preventDefault(); };
+            slot.ondrop = (e) => onDrop(e, i);
+
+            grid.appendChild(slot);
+        }
+    }
+
+    function updateSlot(i) {
+        const slot = document.querySelector(`.slot[data-i="${i}"]`);
+        // Keep overlay, remove img
+        const overlay = slot.querySelector('.slot-overlay');
+        slot.innerHTML = '';
+        slot.appendChild(overlay);
+        
+        if(state.grid[i]) {
+            const icon = createIcon(state.grid[i].id);
+            icon.querySelector('img').loading = "eager";
+            slot.appendChild(icon);
+        }
+    }
+
+    // --- 6. LOGIC ---
+
+    function setBrush(id) {
+        state.brush = id;
+        document.getElementById('status').innerText = id ? `Painting: ${id.toUpperCase()}` : "Ready";
+        renderLib(document.getElementById('search').value.toLowerCase()); // Refresh highlighting
+    }
+
+    function onSlotClick(e, i) {
+        if(state.brush) {
+            paint(i);
+        } else {
+            select(i);
+        }
+    }
+
+    function onSlotEnter(e, i) {
+        if(e.buttons === 1 && state.brush) paint(i);
+        if(state.grid[i]) showTooltip(e, state.grid[i].id);
+    }
+
+    function paint(i) {
+        state.grid[i] = { id: state.brush, name: '', lore: '' };
+        updateSlot(i);
+        select(i);
+        updateCode();
+    }
+
+    function select(i) {
+        state.selected = i;
+        document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
+        if(i !== null) document.querySelector(`.slot[data-i="${i}"]`)?.classList.add('selected');
+        
+        const data = i !== null ? state.grid[i] : null;
+        document.getElementById('p-id').value = data ? data.id.toUpperCase() : '';
+        document.getElementById('p-name').value = data ? data.name : '';
+        document.getElementById('p-lore').value = data ? data.lore : '';
+    }
+
+    function updateData() {
+        if(state.selected === null || !state.grid[state.selected]) return;
+        state.grid[state.selected].name = document.getElementById('p-name').value;
+        state.grid[state.selected].lore = document.getElementById('p-lore').value;
+        updateCode();
+    }
+
+    function removeItem() {
+        if(state.selected !== null) {
+            delete state.grid[state.selected];
+            updateSlot(state.selected);
+            select(null);
             updateCode();
         }
     }
 
+    // Drag & Drop
+    function onDragStart(e, i) {
+        if(state.brush || !state.grid[i]) { e.preventDefault(); return; }
+        state.dragSrc = i;
+        hideTooltip();
+    }
+    
+    function onDrop(e, i) {
+        e.preventDefault();
+        if(state.brush || state.dragSrc === null) return;
+        
+        const src = state.grid[state.dragSrc];
+        const target = state.grid[i];
+        
+        state.grid[i] = src;
+        if(target) state.grid[state.dragSrc] = target;
+        else delete state.grid[state.dragSrc];
+        
+        updateSlot(i);
+        updateSlot(state.dragSrc);
+        state.dragSrc = null;
+        select(i);
+        updateCode();
+    }
+
+    function resize(s) {
+        state.size = s;
+        renderGrid();
+        updateCode();
+    }
+
+    // --- 7. EXPORT ---
     function updateCode() {
-        let yaml = "gui:\n  title: \"Magical Chest\"\n  rows: 6\n  items:\n";
+        const title = document.getElementById('gui-title').value;
+        let c = `public void openGui(Player p) {\n    Inventory inv = Bukkit.createInventory(null, ${state.size}, "${title}");\n\n`;
         
-        for (const [slot, item] of Object.entries(slotData)) {
-            yaml += `    - slot: ${slot}\n      material: ${item.toUpperCase()}\n      amount: 1\n`;
-        }
+        Object.keys(state.grid).forEach(slot => {
+            const item = state.grid[slot];
+            c += `    ItemStack i${slot} = new ItemStack(Material.${item.id.toUpperCase()});\n`;
+            c += `    ItemMeta m${slot} = i${slot}.getItemMeta();\n`;
+            if(item.name) c += `    m${slot}.setDisplayName("${item.name.replace(/&/g,'§')}");\n`;
+            if(item.lore) c += `    m${slot}.setLore(Arrays.asList(${item.lore.split('\n').map(l=>`"${l.replace(/&/g,'§')}"`).join(',')}));\n`;
+            c += `    i${slot}.setItemMeta(m${slot});\n    inv.setItem(${slot}, i${slot});\n\n`;
+        });
         
-        codeOutput.value = yaml;
+        c += `    p.openInventory(inv);\n}`;
+        document.getElementById('code').innerText = c;
     }
 
     function copyCode() {
-        codeOutput.select();
-        document.execCommand('copy');
-        alert("Config copied to clipboard!");
+        navigator.clipboard.writeText(document.getElementById('code').innerText);
+        alert("Java code copied!");
     }
 
-    // Tooltip Logic
-    function showTooltip(e, text) {
-        tooltip.textContent = text;
+    // --- 8. UTILS ---
+    const tooltip = document.getElementById('tooltip');
+    function showTooltip(e, txt) {
+        tooltip.innerText = txt.toUpperCase().replace(/_/g, ' ');
         tooltip.style.display = 'block';
-        tooltip.style.left = e.pageX + 10 + 'px';
-        tooltip.style.top = e.pageY + 10 + 'px';
+        tooltip.style.left = (e.clientX + 10) + 'px';
+        tooltip.style.top = (e.clientY + 10) + 'px';
     }
+    function hideTooltip() { tooltip.style.display = 'none'; }
 
-    function hideTooltip() {
-        tooltip.style.display = 'none';
-    }
-
-    // Initialize
-    initGrid();
-    // Simulate slight network delay for realism
-    setTimeout(initPalette, 100);
+    // INIT
+    document.getElementById('search').addEventListener('input', (e) => renderLib(e.target.value.toLowerCase()));
+    // Global mouse up to stop painting
+    window.addEventListener('mouseup', () => { if(state.brush) state.isPainting = false; });
+    
+    // Boot
+    renderLib('');
+    renderGrid();
+    updateCode();
 
 </script>
-
 </body>
 </html>
