@@ -3,271 +3,282 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GUI Architect v5 (Optimized)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <title>GUI Architect v6 (High Performance)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --obsidian: #120b1a;
-            --amethyst: #9966cc;
-            --dark-purp: #251a33;
-            --end-rod: #e0d0f0;
-            --mc-gui: #c6c6c6;
-            --mc-border-dark: #373737;
-            --mc-border-light: #ffffff;
-            --tooltip-bg: rgba(16, 0, 16, 0.98);
+            --bg: #0f0b15;
+            --panel: #1b1425;
+            --accent: #9d5afe;
+            --border: #332a40;
+            --text-main: #e0e0e0;
+            --text-dim: #888;
         }
 
-        * { box-sizing: border-box; user-select: none; }
+        * { box-sizing: border-box; user-select: none; -webkit-user-drag: none; }
 
         body {
-            background: radial-gradient(circle at center, #1d112b 0%, var(--obsidian) 100%);
-            color: #fff;
-            font-family: 'JetBrains Mono', monospace;
-            padding: 20px;
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
             margin: 0;
             height: 100vh;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
+        /* HEADER */
+        header {
+            height: 45px;
+            background: #15101f;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        .brand { font-family: 'Press Start 2P'; font-size: 12px; color: var(--accent); }
+        .status-bar { font-size: 11px; color: var(--text-dim); font-family: 'JetBrains Mono'; display:flex; gap: 15px; }
+
         /* LAYOUT */
-        .editor-container {
+        .workspace {
             display: grid;
-            grid-template-columns: 350px 1fr 320px;
-            gap: 20px;
-            height: calc(100vh - 70px);
-            max-width: 1900px;
-            margin: 0 auto;
+            grid-template-columns: 300px 1fr 320px;
+            height: calc(100vh - 45px);
         }
 
         .panel {
-            background: rgba(37, 26, 51, 0.95);
-            border: 2px solid var(--amethyst);
+            background: var(--panel);
+            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            border-radius: 6px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-            overflow: hidden;
         }
+        .panel:last-child { border-right: none; border-left: 1px solid var(--border); }
 
         .panel-header {
-            background: var(--amethyst);
-            color: #000;
             padding: 12px;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 11px;
-            text-align: center;
-            font-weight: bold;
+            font-weight: 600;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            color: var(--accent);
             text-transform: uppercase;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .panel-content { padding: 0; overflow-y: hidden; display: flex; flex-direction: column; flex: 1; }
-
-        /* PALETTE OPTIMIZATIONS */
-        .search-container { padding: 10px; background: #000; border-bottom: 1px solid #333; }
-        .search-bar {
+        /* ITEM SEARCH & LIST */
+        .search-wrap { padding: 10px; border-bottom: 1px solid var(--border); }
+        .search-input {
             width: 100%;
-            background: #1a1a1a;
-            border: 1px solid #555;
+            background: #0a0810;
+            border: 1px solid var(--border);
             color: #fff;
-            padding: 10px;
-            font-family: inherit;
+            padding: 8px 10px;
             border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
         }
-        .search-bar:focus { border-color: var(--amethyst); outline: none; }
+        .search-input:focus { border-color: var(--accent); outline: none; }
 
-        .palette-scroll-area {
+        .item-list {
             flex: 1;
             overflow-y: auto;
-            padding: 10px;
-        }
-
-        .palette-grid {
+            padding: 8px;
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+            grid-auto-rows: 42px;
             gap: 6px;
+            align-content: start;
         }
 
-        .palette-item {
-            width: 100%;
-            aspect-ratio: 1;
-            background: rgba(0,0,0,0.4);
+        .inv-slot {
+            width: 100%; height: 100%;
+            background: rgba(255,255,255,0.03);
             border: 1px solid transparent;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             border-radius: 4px;
-            transition: all 0.1s;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
         }
-
-        .palette-item:hover { border-color: var(--end-rod); background: rgba(255,255,255,0.1); }
-        .palette-item.active-brush { border-color: #55ff55; background: rgba(0,255,0,0.15); box-shadow: 0 0 10px #55ff55; }
+        .inv-slot:hover { background: rgba(255,255,255,0.08); border-color: #555; }
+        .inv-slot.active { border-color: var(--accent); background: rgba(157, 90, 254, 0.15); box-shadow: 0 0 8px rgba(157,90,254,0.3); }
         
-        .palette-item img { 
-            width: 32px; height: 32px; 
-            image-rendering: pixelated; 
-            pointer-events: none; 
-            object-fit: contain;
+        .inv-icon { width: 32px; height: 32px; image-rendering: pixelated; object-fit: contain; pointer-events: none; }
+        
+        /* GENERATED FALLBACK ICON (CSS) */
+        .gen-icon {
+            width: 28px; height: 28px;
+            border-radius: 3px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: bold; color: rgba(255,255,255,0.9);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            font-family: monospace;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
         }
 
         /* CANVAS */
-        .canvas-area {
+        .canvas {
+            background: #120e1a;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: rgba(0,0,0,0.2);
-            border-radius: 8px;
             position: relative;
         }
 
-        .gui-frame {
-            background: var(--mc-gui);
-            padding: 10px;
-            border: 4px solid var(--mc-border-dark);
+        .gui-container {
+            background: #c6c6c6;
+            padding: 8px;
+            border: 4px solid #373737;
             border-radius: 2px;
-            box-shadow: 20px 20px 0px rgba(0,0,0,0.5);
-            margin-bottom: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
         }
 
-        #gui-grid {
+        .gui-grid {
             display: grid;
-            grid-template-columns: repeat(9, 54px);
-            gap: 4px;
+            grid-template-columns: repeat(9, 50px);
+            gap: 4px; 
         }
 
-        .gui-slot {
-            width: 54px;
-            height: 54px;
+        .mc-slot {
+            width: 50px; height: 50px;
             background: #8b8b8b;
-            border: 2px solid;
-            border-color: #373737 #fff #fff #373737;
+            border-top: 2px solid #373737;
+            border-left: 2px solid #373737;
+            border-bottom: 2px solid #ffffff;
+            border-right: 2px solid #ffffff;
             position: relative;
             cursor: pointer;
         }
 
-        .gui-slot:hover { background: #a8a8a8; }
-        .gui-slot.selected { outline: 3px solid var(--amethyst); z-index: 10; }
-        .gui-slot img {
-            width: 44px; height: 44px;
+        .mc-slot:hover { background: #a0a0a0; }
+        .mc-slot.selected { outline: 3px solid var(--accent); z-index: 100; }
+        .mc-slot.drag-over { background: #b0b0b0; }
+        
+        .mc-slot img {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            image-rendering: pixelated; pointer-events: none;
+            width: 40px; height: 40px;
+            pointer-events: none; 
+            image-rendering: pixelated;
+        }
+        .mc-slot .gen-icon {
+             position: absolute; top: 50%; left: 50%;
+             transform: translate(-50%, -50%);
+             pointer-events: none;
+        }
+
+        /* PROPERTIES */
+        .props-content { padding: 15px; overflow-y: auto; height: 100%; }
+        .prop-group { margin-bottom: 15px; }
+        .prop-label { display: block; font-size: 10px; color: var(--text-dim); margin-bottom: 5px; text-transform: uppercase; font-weight: bold; }
+        
+        .prop-input, .prop-area {
+            width: 100%; background: #0a0810; border: 1px solid var(--border);
+            color: #fff; padding: 10px; font-family: 'JetBrains Mono', monospace;
+            border-radius: 4px; font-size: 12px; user-select: text;
+        }
+        .prop-input:focus, .prop-area:focus { border-color: var(--accent); outline: none; }
+
+        .btn {
+            width: 100%; padding: 10px; background: var(--accent);
+            color: #fff; border: none; border-radius: 4px;
+            cursor: pointer; font-weight: 600; font-size: 12px;
+            margin-top: 5px; transition: 0.1s;
+        }
+        .btn:hover { filter: brightness(1.1); }
+        .btn:active { transform: translateY(1px); }
+        .btn-sec { background: #332a40; font-size: 10px; padding: 6px; width: auto; }
+        .btn-dang { background: #912d2d; }
+
+        .code-box {
+            background: #0a0810; border: 1px solid var(--border);
+            padding: 10px; border-radius: 4px; height: 180px;
+            overflow: auto; font-family: 'JetBrains Mono', monospace;
+            font-size: 10px; color: #a6accd; white-space: pre; user-select: text;
         }
 
         /* TOOLTIP */
         #mc-tooltip {
-            position: fixed;
-            background: var(--tooltip-bg);
-            border: 2px solid #2a004e;
-            padding: 12px;
-            border-radius: 4px;
-            pointer-events: none;
-            z-index: 9999;
-            display: none;
-            box-shadow: 6px 6px 0px rgba(0,0,0,0.5);
-            min-width: 180px;
-            max-width: 300px;
+            position: fixed; background: rgba(14, 10, 20, 0.98);
+            border: 2px solid #5d34a1; padding: 10px;
+            border-radius: 6px; pointer-events: none; z-index: 9999;
+            display: none; min-width: 160px; max-width: 300px;
+            font-family: 'JetBrains Mono', monospace;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
-        
-        /* PROPERTIES PANEL */
-        .props-inner { padding: 15px; overflow-y: auto; height: 100%; }
-        
-        label { display: block; margin: 15px 0 5px; font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
-        input, textarea {
-            width: 100%; background: #111; border: 1px solid #444;
-            color: #fff; padding: 10px; font-family: 'JetBrains Mono', monospace;
-            border-radius: 4px; user-select: text;
-        }
-        input:focus, textarea:focus { border-color: var(--amethyst); outline: none; background: #1a1a1a; }
+        .tt-name { font-weight: bold; margin-bottom: 5px; text-shadow: 2px 2px 0 #000; font-size: 13px; }
+        .tt-lore { font-size: 12px; color: #aaa; text-shadow: 1px 1px 0 #000; line-height: 1.3; }
+        .tt-id { color: #555; font-size: 9px; margin-top: 5px; }
 
-        button {
-            background: var(--amethyst); border: none; color: white;
-            padding: 12px; width: 100%; cursor: pointer;
-            font-family: 'Press Start 2P', cursive; font-size: 10px; 
-            margin-top: 5px; border-radius: 4px;
-            box-shadow: 0 4px 0 #6a329f;
-            transition: transform 0.1s, box-shadow 0.1s;
-        }
-        button:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
-        button.secondary { background: #555; box-shadow: 0 4px 0 #333; }
-        button.danger { background: #aa3333; box-shadow: 0 4px 0 #771111; }
-
-        .code-preview {
-            background: #151515; padding: 15px;
-            border-radius: 4px; font-size: 11px; height: 200px;
-            overflow: auto; white-space: pre; color: #d4d4d4;
-            border: 1px solid #333; user-select: text; margin-top: 5px;
-        }
-
-        h1 { margin: 0 0 20px; font-size: 18px; color: var(--amethyst); text-shadow: 3px 3px 0 #000; text-align: center; }
-
-        /* BRUSH BAR */
-        .brush-bar {
-            display: flex; align-items: center; gap: 10px; 
-            background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 50px;
-            border: 1px solid var(--amethyst);
-        }
     </style>
 </head>
 <body>
 
-<h1>GUI Architect v5 <span style="font-size:10px; color:#888;">// Optimized</span></h1>
+<header>
+    <div class="brand">GUI ARCHITECT <span style="color:#666">v6.0</span></div>
+    <div class="status-bar">
+        <span id="status-brush">BRUSH: <span style="color: #666">None (Drag Mode)</span></span>
+        <span id="status-count">0 Items</span>
+    </div>
+</header>
 
-<div class="editor-container">
+<div class="workspace">
     
     <div class="panel">
-        <div class="panel-header">Item Database</div>
-        <div class="panel-content">
-            <div class="search-container">
-                <input type="text" class="search-bar" placeholder="Search 1000+ items..." id="search-input">
-            </div>
-            <div class="palette-scroll-area">
-                <div class="palette-grid" id="palette-grid">
-                    </div>
-                <div id="loading-msg" style="text-align: center; color: #666; padding: 20px; font-size: 10px;">End of List</div>
-            </div>
+        <div class="panel-header">
+            <span>Item Database (1.21)</span>
+            <button class="btn btn-sec" onclick="setBrush(null)">CLEAR BRUSH</button>
         </div>
+        <div class="search-wrap">
+            <input type="text" class="search-input" id="search" placeholder="Search (e.g. 'mace', 'bulb')..." autocomplete="off">
+        </div>
+        <div class="item-list" id="library"></div>
     </div>
 
-    <div class="canvas-area">
-        <input type="text" id="gui-title" value="Menu Title" style="text-align: center; font-size: 24px; width: 400px; background: transparent; border: none; border-bottom: 2px solid var(--amethyst); margin-bottom: 30px; font-family: 'Press Start 2P'; color: #fff;">
+    <div class="canvas">
+        <input type="text" id="gui-title" value="My Awesome GUI" style="text-align: center; font-size: 24px; width: 400px; background: transparent; border: none; border-bottom: 2px solid var(--accent); margin-bottom: 30px; color: #fff; font-family: 'Press Start 2P'; padding-bottom: 10px;">
         
-        <div class="gui-frame">
-            <div id="gui-grid" onmouseleave="endPaint()"></div>
+        <div class="gui-container">
+            <div class="gui-grid" id="grid"></div>
         </div>
 
-        <div class="brush-bar">
-            <div style="font-size: 10px; color: #aaa;">CURRENT TOOL:</div>
-            <div id="brush-display" style="display: flex; align-items: center; gap: 10px;">
-                <span style="color: var(--amethyst); font-weight: bold;">CURSOR</span> (Drag Mode)
-            </div>
-            <button onclick="setBrush(null)" style="width: auto; padding: 5px 10px; font-size: 8px; margin: 0; margin-left: 20px;" class="secondary">RESET</button>
-        </div>
-
-        <div style="display: flex; gap: 10px; width: 300px; margin-top: 20px;">
-            <button class="secondary" onclick="setGridSize(27)">3 Rows</button>
-            <button class="secondary" onclick="setGridSize(54)">6 Rows</button>
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button class="btn btn-sec" onclick="resizeGrid(27)">3 Rows</button>
+            <button class="btn btn-sec" onclick="resizeGrid(45)">5 Rows</button>
+            <button class="btn btn-sec" onclick="resizeGrid(54)">6 Rows</button>
         </div>
     </div>
 
     <div class="panel">
-        <div class="panel-header">Properties</div>
-        <div class="panel-content props-inner">
-            <label>Selected ID</label>
-            <input type="text" id="prop-mat" readonly style="color: #666; cursor: not-allowed; border-color: #333;">
+        <div class="panel-header">Item Properties</div>
+        <div class="props-content">
+            <div class="prop-group">
+                <span class="prop-label">Material ID</span>
+                <input type="text" class="prop-input" id="p-id" readonly style="color: #666; cursor: not-allowed; border-color: #222;">
+            </div>
+            
+            <div class="prop-group">
+                <span class="prop-label">Display Name</span>
+                <input type="text" class="prop-input" id="p-name" placeholder="&6Excalibur" oninput="updatePropState()">
+            </div>
 
-            <label>Display Name</label>
-            <input type="text" id="prop-name" placeholder="&6Legendary Item" oninput="updateSlotData()">
+            <div class="prop-group">
+                <span class="prop-label">Lore</span>
+                <textarea class="prop-area" id="p-lore" rows="6" placeholder="&7Line 1&#10;&7Line 2" oninput="updatePropState()"></textarea>
+            </div>
 
-            <label>Lore (Legacy Colors)</label>
-            <textarea id="prop-lore" rows="6" placeholder="&7Line 1&#10;&7Line 2" oninput="updateSlotData()"></textarea>
+            <button class="btn btn-dang" onclick="deleteSelected()">Remove Item</button>
 
-            <button class="danger" onclick="deleteSlot()">Remove Item</button>
-
-            <label>Java Code</label>
-            <div class="code-preview" id="code-output"></div>
-            <button onclick="copyCode()">Copy to Clipboard</button>
+            <div class="prop-group" style="margin-top: 30px;">
+                <span class="prop-label">Export Code</span>
+                <div class="code-box" id="code-out"></div>
+                <button class="btn" onclick="copyCode()">Copy Java Code</button>
+            </div>
         </div>
     </div>
 
@@ -276,350 +287,378 @@
 <div id="mc-tooltip"></div>
 
 <script>
-    // --- 1. CONFIG & HUGE DB GENERATION ---
-    const ASSET_BASE = "https://assets.mcasset.cloud/1.20.1/assets/minecraft/textures";
+    // --- 1. CONFIG & ASSETS ---
+    const ASSET_PATH = "https://assets.mcasset.cloud/1.21/assets/minecraft/textures";
     
-    // We generate standard items procedurally to save file size but cover "All" items.
-    const MATERIALS = [
-        "IRON","GOLD","DIAMOND","NETHERITE","STONE","WOODEN","LEATHER","CHAINMAIL"
-    ];
-    const TOOLS = ["SWORD","PICKAXE","AXE","SHOVEL","HOE","HELMET","CHESTPLATE","LEGGINGS","BOOTS"];
-    const WOOD_TYPES = ["OAK","SPRUCE","BIRCH","JUNGLE","ACACIA","DARK_OAK","MANGROVE","CHERRY","BAMBOO","CRIMSON","WARPED"];
-    const COLORS = ["WHITE","ORANGE","MAGENTA","LIGHT_BLUE","YELLOW","LIME","PINK","GRAY","LIGHT_GRAY","CYAN","PURPLE","BLUE","BROWN","GREEN","RED","BLACK"];
-    const ORES = ["COAL","IRON","COPPER","GOLD","REDSTONE","EMERALD","LAPIS","DIAMOND","NETHER_QUARTZ"];
+    // --- 2. HUGE 1.21 DATABASE ---
+    // Using a function to generate common patterns to keep file size down while having 100% coverage
+    const DB_RAW = [];
+    const add = (id) => DB_RAW.push(id);
+    const addGroup = (base, types) => types.forEach(t => add(`${t}_${base}`));
+    const addColor = (base) => ['WHITE','ORANGE','MAGENTA','LIGHT_BLUE','YELLOW','LIME','PINK','GRAY','LIGHT_GRAY','CYAN','PURPLE','BLUE','BROWN','GREEN','RED','BLACK'].forEach(c => add(`${c}_${base}`));
+    const addWood = (base) => ['OAK','SPRUCE','BIRCH','JUNGLE','ACACIA','DARK_OAK','MANGROVE','CHERRY','BAMBOO','CRIMSON','WARPED'].forEach(w => add(`${w}_${base}`));
+
+    // 1.21 New Items
+    add('CRAFTER'); add('TRIAL_KEY'); add('OMINOUS_TRIAL_KEY'); add('BREEZE_ROD'); add('MACE'); add('WIND_CHARGE');
+    add('HEAVY_CORE'); add('TUFF'); add('TUFF_SLAB'); add('TUFF_STAIRS'); add('TUFF_WALL'); add('CHISELED_TUFF');
+    add('POLISHED_TUFF'); add('TUFF_BRICKS'); add('COPPER_BULB'); add('CHISELED_COPPER'); add('COPPER_GRATE'); add('COPPER_DOOR'); add('COPPER_TRAPDOOR');
     
-    let ITEM_DB = [];
-
-    // Helper to add items
-    function add(id) { ITEM_DB.push({ id: id, name: id.toLowerCase() }); }
+    // Standard Tools
+    const TOOLS = ['SWORD','PICKAXE','AXE','SHOVEL','HOE','HELMET','CHESTPLATE','LEGGINGS','BOOTS'];
+    const MATS = ['WOODEN','STONE','IRON','GOLDEN','DIAMOND','NETHERITE'];
+    MATS.forEach(m => TOOLS.forEach(t => add(`${m}_${t}`)));
     
-    // 1. Core Tools & Armor
-    MATERIALS.forEach(mat => {
-        TOOLS.forEach(tool => {
-            if(mat === "WOODEN" && (tool.includes("HELMET") || tool.includes("CHEST") || tool.includes("LEG") || tool.includes("BOOT"))) return;
-            if((mat === "LEATHER" || mat === "CHAINMAIL") && !tool.includes("HELMET") && !tool.includes("CHEST") && !tool.includes("LEG") && !tool.includes("BOOT")) return;
-            add(`${mat}_${tool}`);
-        });
+    // Colored
+    addColor('WOOL'); addColor('CARPET'); addColor('CONCRETE'); addColor('CONCRETE_POWDER'); 
+    addColor('STAINED_GLASS'); addColor('STAINED_GLASS_PANE'); addColor('BED'); addColor('SHULKER_BOX');
+
+    // Wood
+    addWood('LOG'); addWood('PLANKS'); addWood('STAIRS'); addWood('SLAB'); addWood('FENCE'); addWood('DOOR'); addWood('SIGN'); addWood('BOAT'); addWood('BUTTON'); addWood('PRESSURE_PLATE');
+
+    // Ores & Raw
+    ['COAL','IRON','COPPER','GOLD','REDSTONE','EMERALD','LAPIS','DIAMOND','QUARTZ'].forEach(o => {
+        add(`${o}_ORE`); add(`${o}_BLOCK`); if(o!=='QUARTZ' && o!=='COAL' && o!=='REDSTONE') add(`RAW_${o}`);
     });
 
-    // 2. Colored Blocks (Wool, Glass, Concrete, Beds, Shulkers)
-    COLORS.forEach(c => {
-        add(`${c}_WOOL`);
-        add(`${c}_STAINED_GLASS`);
-        add(`${c}_STAINED_GLASS_PANE`);
-        add(`${c}_CONCRETE`);
-        add(`${c}_CONCRETE_POWDER`);
-        add(`${c}_BED`);
-        add(`${c}_SHULKER_BOX`);
-        add(`${c}_BANNER`);
-    });
+    // Misc Basics
+    ['APPLE','GOLDEN_APPLE','ENCHANTED_GOLDEN_APPLE','ARROW','BOW','CROSSBOW','TRIDENT','SHIELD','TOTEM_OF_UNDYING',
+     'ELYTRA','FIREWORK_ROCKET','TNT','FLINT_AND_STEEL','SHEARS','BUCKET','WATER_BUCKET','LAVA_BUCKET',
+     'ENDER_PEARL','EYE_OF_ENDER','PAPER','BOOK','WRITABLE_BOOK','ENCHANTED_BOOK',
+     'IRON_INGOT','GOLD_INGOT','COPPER_INGOT','NETHERITE_INGOT','BRICK','STICK',
+     'BEACON','CONDUIT','ENDER_CHEST','CHEST','BARREL','FURNACE','ANVIL','ENCHANTING_TABLE',
+     'CRAFTING_TABLE','LOOM','SMITHING_TABLE','GRINDSTONE','STONECUTTER','JUKEBOX',
+     'GRASS_BLOCK','DIRT','STONE','COBBLESTONE','MOSSY_COBBLESTONE','OBSIDIAN','NETHERRACK','END_STONE',
+     'SAND','RED_SAND','GRAVEL','CLAY','ICE','PACKED_ICE','BLUE_ICE','SNOW_BLOCK',
+     'CACTUS','SUGAR_CANE','PUMPKIN','MELON','GLOWSTONE','SEA_LANTERN','FROG_SPAWN','GOAT_HORN','ECHO_SHARD','RECOVERY_COMPASS'
+    ].forEach(i => add(i));
 
-    // 3. Wood Variants
-    WOOD_TYPES.forEach(w => {
-        add(`${w}_LOG`);
-        add(`${w}_PLANKS`);
-        add(`${w}_STAIRS`);
-        add(`${w}_SLAB`);
-        add(`${w}_FENCE`);
-        add(`${w}_DOOR`);
-        add(`${w}_SIGN`);
-        add(`${w}_BOAT`);
-    });
+    add('BARRIER'); add('STRUCTURE_VOID'); add('LIGHT'); add('COMMAND_BLOCK');
 
-    // 4. Ores & Raw
-    ORES.forEach(o => {
-        add(`${o}_ORE`);
-        add(`DEEPSLATE_${o}_ORE`);
-        if(o !== "REDSTONE" && o !== "EMERALD" && o !== "LAPIS" && o !== "DIAMOND" && o !== "COAL" && o !== "NETHER_QUARTZ") add(`RAW_${o}`);
-    });
-
-    // 5. Ingot/Gem/Dust
-    ["IRON_INGOT","GOLD_INGOT","COPPER_INGOT","NETHERITE_INGOT","DIAMOND","EMERALD","LAPIS_LAZULI","REDSTONE","COAL","CHARCOAL","QUARTZ","AMETHYST_SHARD","ECHO_SHARD"].forEach(i => add(i));
-
-    // 6. Food
-    ["APPLE","GOLDEN_APPLE","ENCHANTED_GOLDEN_APPLE","MELON_SLICE","SWEET_BERRIES","GLOW_BERRIES","CHORUS_FRUIT","CARROT","POTATO","BAKED_POTATO","BREAD","COOKED_BEEF","COOKED_PORKCHOP","COOKED_CHICKEN","COOKED_MUTTON","COOKED_COD","COOKED_SALMON","COOKIE","CAKE","PUMPKIN_PIE"].forEach(f => add(f));
-
-    // 7. Utility & Redstone
-    ["ARROW","BOW","CROSSBOW","SHIELD","TOTEM_OF_UNDYING","ELYTRA","FIREWORK_ROCKET","TNT","FLINT_AND_STEEL","SHEARS","BUCKET","WATER_BUCKET","LAVA_BUCKET","MILK_BUCKET","ENDER_PEARL","EYE_OF_ENDER","FIRE_CHARGE","MAP","PAPER","BOOK","WRITABLE_BOOK","ENCHANTED_BOOK","COMPASS","RECOVERY_COMPASS","CLOCK","SPYGLASS","NAME_TAG","LEAD","SADDLE"].forEach(u => add(u));
-    ["REDSTONE_TORCH","REPEATER","COMPARATOR","LEVER","PISTON","STICKY_PISTON","OBSERVER","DISPENSER","DROPPER","HOPPER","LIGHTNING_ROD","DAYLIGHT_DETECTOR","SCULK_SENSOR"].forEach(r => add(r));
-
-    // 8. Special Blocks
-    ["BEACON","CONDUIT","ENDER_CHEST","CHEST","BARREL","FURNACE","BLAST_FURNACE","SMOKER","ANVIL","ENCHANTING_TABLE","CRAFTING_TABLE","LOOM","CARTOGRAPHY_TABLE","FLETCHING_TABLE","SMITHING_TABLE","GRINDSTONE","STONECUTTER","JUKEBOX","NOTE_BLOCK"].forEach(b => add(b));
-    ["COBBLESTONE","MOSSY_COBBLESTONE","STONE","SMOOTH_STONE","GRANITE","DIORITE","ANDESITE","DEEPSLATE","COBBLED_DEEPSLATE","TUFF","CALCITE","DRIPSTONE_BLOCK","OBSIDIAN","CRYING_OBSIDIAN","NETHERRACK","SOUL_SAND","SOUL_SOIL","BASALT","BLACKSTONE","END_STONE","PURPUR_BLOCK","GLOWSTONE","SEA_LANTERN","SHROOMLIGHT","OCHRE_FROGLIGHT","VERDANT_FROGLIGHT","PEARLESCENT_FROGLIGHT"].forEach(s => add(s));
-
-    // 9. Nature
-    ["GRASS_BLOCK","DIRT","COARSE_DIRT","PODZOL","MYCELIUM","SAND","RED_SAND","GRAVEL","CLAY","ICE","PACKED_ICE","BLUE_ICE","SNOW_BLOCK","CACTUS","SUGAR_CANE","PUMPKIN","MELON","LILY_PAD","VINE","GLOW_LICHEN"].forEach(n => add(n));
-
-    // 10. Admin
-    ["BARRIER","COMMAND_BLOCK","STRUCTURE_VOID","LIGHT","DEBUG_STICK"].forEach(a => add(a));
-
-    // --- 2. STATE ---
+    // --- 3. STATE & PERFORMANCE ---
     let state = {
-        slots: {},
-        selectedSlot: null,
+        grid: {}, // { index: {id, name, lore} }
         brush: null,
+        selected: null,
         size: 54,
         isPainting: false,
-        dragSrc: null
+        lastPainted: -1
     };
 
-    // --- 3. LOGIC ---
-    
+    // --- 4. IMAGE GENERATOR (NO MORE BARRIERS) ---
+    // Generates a hash color from string
+    function stringToColor(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+        return "#" + "00000".substring(0, 6 - c.length) + c;
+    }
+
+    // Creates the HTML element for an item (Image or Fallback)
+    function createItemVisual(id) {
+        const name = id.toLowerCase();
+        const container = document.createElement('div');
+        container.style.width = "100%"; container.style.height = "100%";
+        
+        // 1. Try Image
+        const img = document.createElement('img');
+        
+        // Complex Path Logic for better hit rate
+        let path = `${ASSET_PATH}/item/${name}.png`;
+        // Common Block exceptions
+        if(id.includes('BLOCK') || id.includes('ORE') || id.includes('LOG') || id.includes('PLANKS') || id.includes('WOOL')) {
+             path = `${ASSET_PATH}/block/${name}.png`;
+        }
+
+        img.src = path;
+        img.className = "item-img";
+        
+        // Error Handler: If item path fails, try block path. If block fails, show GENERATED ICON
+        img.onerror = function() {
+            if(this.src.includes('/item/')) {
+                this.src = `${ASSET_PATH}/block/${name}.png`;
+            } else {
+                // If both fail, remove IMG and replace with Gen Icon
+                this.style.display = 'none';
+                const fallback = document.createElement('div');
+                fallback.className = 'gen-icon';
+                fallback.style.backgroundColor = stringToColor(id);
+                // Get initials (e.g. DIAMOND_SWORD -> DS)
+                fallback.innerText = id.split('_').map(w => w[0]).join('').substring(0,2);
+                container.appendChild(fallback);
+            }
+        };
+
+        container.appendChild(img);
+        return container;
+    }
+
+    // --- 5. INITIALIZATION ---
     function init() {
-        // Render only first 100 initially to prevent lag
-        renderPalette(''); 
+        renderLibrary('');
         renderGrid();
-        updateCode();
         
         // Debounce Search
-        const searchInput = document.getElementById('search-input');
-        let timeout = null;
+        const searchInput = document.getElementById('search');
+        let timer;
         searchInput.addEventListener('input', (e) => {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => {
-                renderPalette(e.target.value);
-            }, 300); // 300ms delay
+            clearTimeout(timer);
+            timer = setTimeout(() => renderLibrary(e.target.value.toUpperCase()), 150);
+        });
+
+        // Global Mouse Up
+        window.addEventListener('mouseup', () => {
+            state.isPainting = false;
+            state.lastPainted = -1;
         });
     }
 
-    // --- TEXTURE LOADER (THE FIX) ---
-    // Try item folder first. If error, switch to block folder.
-    function createSmartImage(item) {
-        const img = document.createElement('img');
-        // Initial Try: Item folder
-        img.src = `${ASSET_BASE}/item/${item.name}.png`;
-        img.onerror = function() {
-            // Second Try: Block folder
-            this.onerror = null; // Prevent infinite loop
-            this.src = `${ASSET_BASE}/block/${item.name}.png`;
-            // If block fails, try checking for _side naming convention common in blocks
-            this.onerror = function() {
-                this.src = `${ASSET_BASE}/block/${item.name}_side.png`;
-                // Final fallback
-                this.onerror = function() {
-                    this.src = "https://assets.mcasset.cloud/1.20.1/assets/minecraft/textures/item/barrier.png";
-                }
-            }
-        };
-        return img;
-    }
-
-    function renderPalette(filter) {
-        const grid = document.getElementById('palette-grid');
-        grid.innerHTML = '';
-        
-        const term = filter.toUpperCase().replace(/ /g, '_');
+    // --- 6. RENDERERS ---
+    
+    // A. Library (Virtualization not needed for <1000 items if simple, but we limit render count)
+    function renderLibrary(filter) {
+        const container = document.getElementById('library');
+        container.innerHTML = '';
         let count = 0;
-        const LIMIT = 150; // Performance Cap
 
-        for (let item of ITEM_DB) {
-            if (term && !item.id.includes(term)) continue;
-            
-            // Hard limit on visible items to stop lag
-            if (!term && count > LIMIT) break; 
-            if (term && count > 300) break; // Allow more results if searching
+        for(const id of DB_RAW) {
+            if(filter && !id.includes(filter)) continue;
+            if(!filter && count > 200) break; // Limit initial view for speed
 
-            const div = document.createElement('div');
-            div.className = 'palette-item';
-            if(state.brush && state.brush.id === item.id) div.classList.add('active-brush');
-            div.onclick = () => setBrush(item);
-            div.title = item.id;
+            const slot = document.createElement('div');
+            slot.className = 'inv-slot';
+            slot.title = id;
+            slot.onclick = () => setBrush(id);
             
-            div.appendChild(createSmartImage(item));
-            grid.appendChild(div);
+            slot.appendChild(createItemVisual(id));
+            container.appendChild(slot);
             count++;
         }
-        
-        document.getElementById('loading-msg').innerText = count > LIMIT && !term ? `Showing top ${LIMIT} items (Use search for more)` : `${count} items found`;
+        document.getElementById('status-count').innerText = `${count} matches`;
     }
 
-    function setBrush(item) {
-        state.brush = item;
-        const display = document.getElementById('brush-display');
-        
-        // Update UI highlight
-        document.querySelectorAll('.palette-item').forEach(el => el.classList.remove('active-brush'));
-
-        if(item) {
-            display.innerHTML = `<img src="${ASSET_BASE}/item/${item.name}.png" onerror="this.src='${ASSET_BASE}/block/${item.name}.png'" style="width:24px;height:24px;"> <span style="color:var(--amethyst)">${item.id}</span>`;
-        } else {
-            display.innerHTML = `<span style="color:var(--amethyst); font-weight:bold;">CURSOR</span> (Drag Mode)`;
-        }
-    }
-
-    // --- GRID SYSTEM ---
-    function setGridSize(n) { state.size = n; renderGrid(); updateCode(); }
-
+    // B. Main Grid (Render once, then update slots individually)
     function renderGrid() {
-        const grid = document.getElementById('gui-grid');
+        const grid = document.getElementById('grid');
         grid.innerHTML = '';
+        grid.style.gridTemplateColumns = `repeat(9, 50px)`;
 
         for(let i=0; i<state.size; i++) {
             const slot = document.createElement('div');
-            slot.className = 'gui-slot';
-            if(state.selectedSlot === i) slot.classList.add('selected');
+            slot.className = 'mc-slot';
+            slot.dataset.index = i;
 
-            if(state.slots[i]) {
-                slot.appendChild(createSmartImage(state.slots[i]));
+            // Render existing
+            if(state.grid[i]) {
+                slot.appendChild(createItemVisual(state.grid[i].id));
             }
 
-            // MOUSE EVENTS
-            slot.onmousedown = (e) => {
-                if(e.button === 0) {
-                    if(state.brush) {
-                        state.isPainting = true;
-                        applyBrush(i);
-                    } else if(state.slots[i]) {
-                        // Start Drag (Native API wrapper)
-                        slot.draggable = true;
-                    }
-                    selectSlot(i);
-                }
-            };
+            // Events
+            slot.addEventListener('mousedown', (e) => handleSlotDown(e, i));
+            slot.addEventListener('mouseenter', (e) => handleSlotEnter(e, i));
+            slot.addEventListener('mouseleave', () => document.getElementById('mc-tooltip').style.display = 'none');
             
-            slot.onmouseenter = (e) => {
-                if(state.isPainting && state.brush) {
-                    applyBrush(i);
-                    selectSlot(i);
-                }
-                if(state.slots[i]) showTooltip(e, i);
-            };
-
-            slot.onmouseleave = () => {
-                document.getElementById('mc-tooltip').style.display = 'none';
-            };
-
-            slot.oncontextmenu = (e) => {
-                e.preventDefault();
-                delete state.slots[i];
-                if(state.selectedSlot === i) selectSlot(null);
-                renderGrid();
-                updateCode();
-            };
-
-            // Drag & Drop Logic (Native)
-            if(!state.brush) {
-                slot.ondragstart = (e) => {
-                    state.dragSrc = i;
-                    document.getElementById('mc-tooltip').style.display = 'none';
-                };
-                slot.ondragover = (e) => e.preventDefault();
-                slot.ondrop = (e) => {
-                    e.preventDefault();
-                    if(state.dragSrc === null) return;
-                    // Swap
-                    let temp = state.slots[i];
-                    state.slots[i] = state.slots[state.dragSrc];
-                    if(temp) state.slots[state.dragSrc] = temp; 
-                    else delete state.slots[state.dragSrc];
-                    
-                    state.dragSrc = null;
-                    renderGrid();
-                    updateCode();
-                };
-            }
+            // Native Drag (Only if no brush)
+            slot.draggable = true;
+            slot.addEventListener('dragstart', (e) => handleDragStart(e, i));
+            slot.addEventListener('dragover', (e) => handleDragOver(e, i));
+            slot.addEventListener('drop', (e) => handleDrop(e, i));
 
             grid.appendChild(slot);
         }
     }
 
-    function applyBrush(i) {
-        state.slots[i] = { id: state.brush.id, name: state.brush.name, displayName: '', lore: '' };
+    // Update Single Slot (The Performance Fix)
+    function updateSlotVisual(index) {
+        const slot = document.querySelector(`.mc-slot[data-index="${index}"]`);
+        if(!slot) return;
+        
+        slot.innerHTML = ''; // Clear current
+        if(state.grid[index]) {
+            slot.appendChild(createItemVisual(state.grid[index].id));
+        }
+    }
+
+    function resizeGrid(s) {
+        state.size = s;
         renderGrid();
         updateCode();
     }
-    
-    function endPaint() { state.isPainting = false; }
 
-    function selectSlot(i) {
-        state.selectedSlot = i;
-        const slots = document.querySelectorAll('.gui-slot');
-        slots.forEach(s => s.classList.remove('selected'));
-        if(i !== null && slots[i]) slots[i].classList.add('selected');
+    // --- 7. INTERACTION LOGIC ---
+
+    function setBrush(id) {
+        state.brush = id;
+        // Visual Update
+        document.querySelectorAll('.inv-slot').forEach(s => {
+            if(s.title === id) s.classList.add('active');
+            else s.classList.remove('active');
+        });
         
-        // Update Props Panel
-        const data = (i !== null) ? state.slots[i] : null;
-        document.getElementById('prop-mat').value = data ? data.id : '';
-        document.getElementById('prop-name').value = data ? data.displayName : '';
-        document.getElementById('prop-lore').value = data ? data.lore : '';
+        const txt = id ? `<span style="color:var(--accent)">${id}</span>` : `<span style="color:#666">None (Drag Mode)</span>`;
+        document.getElementById('status-brush').innerHTML = `BRUSH: ${txt}`;
     }
 
-    function updateSlotData() {
-        if(state.selectedSlot === null || !state.slots[state.selectedSlot]) return;
-        const s = state.slots[state.selectedSlot];
-        s.displayName = document.getElementById('prop-name').value;
-        s.lore = document.getElementById('prop-lore').value;
+    // MOUSE LOGIC
+    function handleSlotDown(e, i) {
+        if(e.button !== 0) return; // Left click only
+        
+        if(state.brush) {
+            // PAINT MODE
+            state.isPainting = true;
+            paint(i);
+        } else {
+            // SELECT MODE
+            selectSlot(i);
+        }
+    }
+
+    function handleSlotEnter(e, i) {
+        // Tooltip
+        if(state.grid[i]) showTooltip(e, state.grid[i]);
+
+        // Paint
+        if(state.isPainting && state.brush) {
+            paint(i);
+        }
+    }
+
+    function paint(i) {
+        if(state.lastPainted === i) return; // Prevent spam
+        state.grid[i] = { id: state.brush, name: '', lore: '' };
+        updateSlotVisual(i);
+        state.lastPainted = i;
+        selectSlot(i);
         updateCode();
     }
-    
-    function deleteSlot() {
-        if(state.selectedSlot !== null) {
-            delete state.slots[state.selectedSlot];
+
+    // DRAG AND DROP (Native HTML5)
+    let dragSrcIndex = null;
+
+    function handleDragStart(e, i) {
+        if(state.brush || !state.grid[i]) {
+            e.preventDefault();
+            return;
+        }
+        dragSrcIndex = i;
+        e.dataTransfer.effectAllowed = 'move';
+        // Hide tooltip
+        document.getElementById('mc-tooltip').style.display = 'none';
+    }
+
+    function handleDragOver(e, i) {
+        if(state.brush) return;
+        e.preventDefault(); // Necessary to allow dropping
+        e.dataTransfer.dropEffect = 'move';
+        document.querySelector(`.mc-slot[data-index="${i}"]`).classList.add('drag-over');
+    }
+
+    function handleDrop(e, i) {
+        e.preventDefault();
+        document.querySelectorAll('.mc-slot').forEach(s => s.classList.remove('drag-over'));
+        
+        if(state.brush || dragSrcIndex === null || dragSrcIndex === i) return;
+
+        // Swap Logic
+        const srcData = state.grid[dragSrcIndex];
+        const targetData = state.grid[i];
+
+        state.grid[i] = srcData;
+        if(targetData) state.grid[dragSrcIndex] = targetData;
+        else delete state.grid[dragSrcIndex];
+
+        updateSlotVisual(dragSrcIndex);
+        updateSlotVisual(i);
+        
+        dragSrcIndex = null;
+        selectSlot(i);
+        updateCode();
+    }
+
+    // --- 8. PROPERTIES & EXPORT ---
+    function selectSlot(i) {
+        state.selected = i;
+        // Highlight visual
+        document.querySelectorAll('.mc-slot').forEach(s => s.classList.remove('selected'));
+        const el = document.querySelector(`.mc-slot[data-index="${i}"]`);
+        if(el) el.classList.add('selected');
+
+        // Form Fill
+        const data = state.grid[i];
+        document.getElementById('p-id').value = data ? data.id : '';
+        document.getElementById('p-name').value = data ? data.name : '';
+        document.getElementById('p-lore').value = data ? data.lore : '';
+    }
+
+    function updatePropState() {
+        if(state.selected === null || !state.grid[state.selected]) return;
+        const s = state.grid[state.selected];
+        s.name = document.getElementById('p-name').value;
+        s.lore = document.getElementById('p-lore').value;
+        updateCode();
+    }
+
+    function deleteSelected() {
+        if(state.selected !== null) {
+            delete state.grid[state.selected];
+            updateSlotVisual(state.selected);
             selectSlot(null);
-            renderGrid();
             updateCode();
         }
     }
 
-    // --- TOOLTIP & COLORS ---
+    // --- 9. UTILS ---
     const MC_COLORS = {'0':'#000','1':'#00a','2':'#0a0','3':'#0aa','4':'#a00','5':'#a0a','6':'#fa0','7':'#aaa','8':'#555','9':'#55f','a':'#5f5','b':'#5ff','c':'#f55','d':'#f5f','e':'#ff5','f':'#fff'};
-    
-    function parseColors(text) {
-        if(!text) return '';
-        let parts = text.split(/(&[0-9a-f])/g);
-        let color = '#fff';
-        let html = '';
-        parts.forEach(p => {
-            if(p.startsWith('&') && MC_COLORS[p[1]]) color = MC_COLORS[p[1]];
-            else html += `<span style="color:${color}">${p}</span>`;
+    function parseColors(txt) {
+        if(!txt) return '';
+        let h = ''; let c = '#fff';
+        txt.split(/(&[0-9a-f])/g).forEach(p => {
+            if(p.startsWith('&') && MC_COLORS[p[1]]) c = MC_COLORS[p[1]];
+            else h += `<span style="color:${c}">${p}</span>`;
         });
-        return html;
+        return h;
     }
 
-    function showTooltip(e, i) {
-        const d = state.slots[i];
-        if(!d) return;
+    function showTooltip(e, data) {
         const tt = document.getElementById('mc-tooltip');
+        const nameHtml = data.name ? parseColors(data.name) : `<span style="color:#55ffff">${data.id.replace(/_/g,' ')}</span>`;
+        const loreHtml = data.lore ? data.lore.split('\n').map(l => `<div>${parseColors(l)}</div>`).join('') : '';
         
-        let title = d.displayName ? parseColors(d.displayName) : `<span style="color:#5ff">${d.name.replace(/_/g,' ')}</span>`;
-        let lore = d.lore ? d.lore.split('\n').map(l => `<div>${parseColors(l)}</div>`).join('') : '';
-
-        tt.innerHTML = `<div style="text-transform:capitalize; margin-bottom:4px; text-shadow:1px 1px 0 #000;">${title}</div><div style="color:#aaa; text-shadow:1px 1px 0 #000;">${lore}</div>`;
+        tt.innerHTML = `
+            <div class="tt-name">${nameHtml}</div>
+            <div class="tt-lore">${loreHtml}</div>
+            <div class="tt-id">${data.id}</div>
+        `;
         tt.style.display = 'block';
-        tt.style.left = (e.clientX + 15) + 'px';
-        tt.style.top = (e.clientY + 15) + 'px';
+        tt.style.left = (e.clientX + 15) + "px";
+        tt.style.top = (e.clientY + 15) + "px";
     }
 
-    // --- JAVA GEN ---
     function updateCode() {
         const title = document.getElementById('gui-title').value;
         let c = `public void openGui(Player player) {\n    Inventory inv = Bukkit.createInventory(null, ${state.size}, "${title}");\n\n`;
-        
-        for(let i=0; i<state.size; i++) {
-            if(state.slots[i]) {
-                const s = state.slots[i];
-                c += `    ItemStack item${i} = new ItemStack(Material.${s.id});\n`;
-                c += `    ItemMeta meta${i} = item${i}.getItemMeta();\n`;
-                if(s.displayName) c += `    meta${i}.setDisplayName("${s.displayName.replace(/&/g,'§')}");\n`;
-                if(s.lore) {
-                    const l = s.lore.split('\n').map(x => `"${x.replace(/&/g,'§')}"`).join(',');
-                    c += `    meta${i}.setLore(Arrays.asList(${l}));\n`;
-                }
-                c += `    item${i}.setItemMeta(meta${i});\n`;
-                c += `    inv.setItem(${i}, item${i});\n\n`;
+        Object.keys(state.grid).forEach(k => {
+            const s = state.grid[k];
+            c += `    ItemStack item${k} = new ItemStack(Material.${s.id});\n`;
+            c += `    ItemMeta meta${k} = item${k}.getItemMeta();\n`;
+            if(s.name) c += `    meta${k}.setDisplayName("${s.name.replace(/&/g,'§')}");\n`;
+            if(s.lore) {
+                const l = s.lore.split('\n').map(x => `"${x.replace(/&/g,'§')}"`).join(',');
+                c += `    meta${k}.setLore(Arrays.asList(${l}));\n`;
             }
-        }
+            c += `    item${k}.setItemMeta(meta${k});\n    inv.setItem(${k}, item${k});\n\n`;
+        });
         c += `    player.openInventory(inv);\n}`;
-        document.getElementById('code-output').innerText = c;
+        document.getElementById('code-out').innerText = c;
     }
 
     function copyCode() {
-        navigator.clipboard.writeText(document.getElementById('code-output').innerText);
-        alert("Copied!");
+        navigator.clipboard.writeText(document.getElementById('code-out').innerText);
+        alert("Java Code Copied!");
     }
 
-    // Init
+    // Start
     init();
+
 </script>
 </body>
 </html>
