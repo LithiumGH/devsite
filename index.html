@@ -3,347 +3,297 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>End-Tier Developer Toolkit</title>
+    <title>End-Tier GUI Architect</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --obsidian: #120b1a;
-            --void-grey: #1a1a1a;
+            --obsidian: #0d0714;
             --amethyst: #9966cc;
+            --void-purp: #2d1b4d;
             --end-rod: #e0d0f0;
-            --dragon-breath: #6a329f;
-            --mc-shadow: #373737;
-            --mc-panel: #c6c6c6;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+            --mc-gui: #c6c6c6;
+            --mc-border-dark: #373737;
+            --mc-border-light: #ffffff;
         }
 
         body {
-            background: radial-gradient(circle at center, #1d112b 0%, var(--obsidian) 100%);
-            color: #ffffff;
+            background: var(--obsidian);
+            color: #fff;
             font-family: 'JetBrains Mono', monospace;
             padding: 20px;
-            line-height: 1.6;
         }
 
-        h1, h2, h3 {
-            font-family: 'Press Start 2P', cursive;
-            color: var(--amethyst);
-            text-shadow: 3px 3px 0px var(--dragon-breath);
-            text-transform: uppercase;
-        }
+        h1 { font-family: 'Press Start 2P', cursive; color: var(--amethyst); text-align: center; font-size: 22px; margin-bottom: 30px; }
 
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding: 20px;
-            border-bottom: 4px solid var(--amethyst);
-        }
-
-        /* Layout Sections */
-        .container {
-            max-width: 1200px;
+        .editor-container {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 20px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
-        .section {
-            margin-bottom: 60px;
-            padding: 25px;
-            background: rgba(26, 26, 26, 0.8);
+        /* Side Panels */
+        .panel {
+            background: var(--void-purp);
             border: 2px solid var(--amethyst);
-            box-shadow: 0 0 15px rgba(153, 102, 204, 0.2);
+            padding: 15px;
             border-radius: 4px;
+            height: fit-content;
         }
 
-        /* Section A: The Toolbox */
-        .grid-layout {
+        .panel-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            margin-bottom: 15px;
+            color: var(--end-rod);
+            border-bottom: 1px solid var(--amethyst);
+            padding-bottom: 5px;
+        }
+
+        /* The Grid */
+        .gui-canvas-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #gui-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(9, 50px);
+            gap: 2px;
+            background: var(--mc-gui);
+            padding: 10px;
+            border: 4px solid var(--mc-border-dark);
+            image-rendering: pixelated;
         }
 
-        .card {
-            background: #251a33;
-            border: 2px solid var(--dragon-breath);
-            padding: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .card:hover {
-            border-color: var(--end-rod);
-            box-shadow: 0 0 10px var(--amethyst);
-        }
-
-        /* Tool 1: Chest Grid */
-        #chest-display {
-            display: grid;
-            grid-template-columns: repeat(9, 1fr);
-            gap: 4px;
-            background: #8b8b8b;
-            padding: 8px;
-            border: 4px solid #373737;
-            margin-top: 10px;
-        }
-
-        .slot {
-            width: 100%;
-            aspect-ratio: 1;
+        .gui-slot {
+            width: 50px;
+            height: 50px;
             background: #8b8b8b;
             border: 2px solid;
-            border-color: #373737 #ffffff #ffffff #373737;
+            border-color: var(--mc-border-dark) var(--mc-border-light) var(--mc-border-light) var(--mc-border-dark);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
+        }
+
+        .gui-slot.selected {
+            outline: 3px solid var(--amethyst);
+            z-index: 10;
+        }
+
+        /* Item Palette */
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .palette-item {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #333;
+            border: 1px solid var(--amethyst);
+            cursor: pointer;
+            display: flex;
             font-size: 10px;
-            color: #333;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
         }
 
-        .slot:hover {
-            background: var(--amethyst);
-            color: white;
-        }
-
-        /* Inputs & Buttons */
-        input, select, textarea {
+        /* Inputs */
+        input, textarea, select {
             width: 100%;
             background: #000;
             border: 1px solid var(--amethyst);
             color: var(--end-rod);
-            padding: 10px;
-            margin: 10px 0;
+            padding: 8px;
+            margin-bottom: 10px;
             font-family: inherit;
         }
 
-        .mc-button {
-            background: #7e7e7e;
-            border: 3px solid;
-            border-color: #cfcfcf #313131 #313131 #cfcfcf;
-            color: white;
-            padding: 10px 15px;
-            cursor: pointer;
-            text-transform: uppercase;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 10px;
-            width: 100%;
-        }
-
-        .mc-button:active {
-            border-color: #313131 #cfcfcf #cfcfcf #313131;
-        }
-
-        /* Section B: Code Repository */
-        pre {
-            background: #0d0814;
-            padding: 15px;
-            border-left: 4px solid var(--amethyst);
-            overflow-x: auto;
-            position: relative;
-        }
-
-        .copy-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: var(--dragon-breath);
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        /* Section C: Data Tables */
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        .export-box {
+            grid-column: 1 / -1;
+            background: #000;
+            border: 2px solid var(--amethyst);
+            padding: 20px;
             margin-top: 20px;
         }
 
-        th {
-            background: var(--dragon-breath);
-            text-align: left;
-            padding: 12px;
-        }
+        code { color: #d19a66; }
+        .keyword { color: #c678dd; }
+        .string { color: #98c379; }
 
-        td {
+        button {
+            background: var(--amethyst);
+            border: none;
+            color: white;
             padding: 10px;
-            border-bottom: 1px solid var(--mc-shadow);
-        }
-
-        tr:hover {
-            background: rgba(153, 102, 204, 0.1);
-        }
-
-        #color-preview {
-            min-height: 40px;
-            background: #000;
-            padding: 10px;
-            border: 1px inset var(--amethyst);
-            word-wrap: break-word;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            width: 100%;
         }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <h1>End-Tier DevKit</h1>
-    <p>The ultimate utility belt for Minecraft Spigot/Paper developers.</p>
-</div>
+<h1>GUI Architect v1</h1>
 
-<div class="container">
+<div class="editor-container">
     
-    <h2 style="margin-bottom: 20px;">Section A: Toolbox</h2>
-    <div class="section grid-layout">
-        <div class="card">
-            <h3>Slot Mapper</h3>
-            <select id="chest-type" onchange="updateChestGrid()">
-                <option value="27">Single Chest (27)</option>
-                <option value="54" selected>Double Chest (54)</option>
-                <option value="36">Player Inventory (36)</option>
-            </select>
-            <div id="chest-display"></div>
-            <p style="font-size: 11px; margin-top: 10px;">Click a slot to copy ID.</p>
+    <div class="panel">
+        <div class="panel-title">Item Palette</div>
+        <div class="palette-grid" id="palette">
+            <div class="palette-item" onclick="setBrush('DIAMOND')">DIAMOND</div>
+            <div class="palette-item" onclick="setBrush('GOLD_INGOT')">GOLD</div>
+            <div class="palette-item" onclick="setBrush('IRON_INGOT')">IRON</div>
+            <div class="palette-item" onclick="setBrush('CHEST')">CHEST</div>
+            <div class="palette-item" onclick="setBrush('NETHERITE_SWORD')">SWORD</div>
+            <div class="palette-item" onclick="setBrush('ENCHANTED_BOOK')">BOOK</div>
+            <div class="palette-item" onclick="setBrush('BARRIER')">EXIT</div>
+            <div class="palette-item" onclick="setBrush('GRAY_STAINED_GLASS_PANE')">PANEL</div>
         </div>
+        <p style="font-size: 10px; margin-top: 10px;">Selected Brush: <span id="current-brush" style="color:var(--amethyst)">AIR</span></p>
+    </div>
 
-        <div class="card">
-            <h3>Stack Converter</h3>
-            <input type="number" id="item-amount" placeholder="Enter item count..." oninput="convertStacks()">
-            <div id="stack-results" style="margin-top: 10px;">
-                <p>Double Chests: <span id="res-dc" class="amethyst">0</span></p>
-                <p>Stacks (64): <span id="res-st" class="amethyst">0</span></p>
-                <p>Remainder: <span id="res-rem" class="amethyst">0</span></p>
-            </div>
-        </div>
-
-        <div class="card">
-            <h3>Color Preview</h3>
-            <input type="text" id="color-input" placeholder="Enter text (e.g. &5Hello &dWorld)" oninput="previewColors()">
-            <div id="color-preview"></div>
-        </div>
-
-        <div class="card">
-            <h3>NBT /give</h3>
-            <input type="text" id="nbt-mat" placeholder="Material (e.g. diamond_sword)">
-            <input type="text" id="nbt-name" placeholder="Display Name">
-            <button class="mc-button" onclick="generateCommand()">Generate</button>
+    <div class="gui-canvas-wrapper">
+        <input type="text" id="gui-name" value="Custom Menu" style="width: 468px; text-align: center; font-size: 18px;">
+        <div id="gui-grid"></div>
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button onclick="resizeGrid(27)">3 Rows</button>
+            <button onclick="resizeGrid(54)">6 Rows</button>
         </div>
     </div>
 
-    <h2>Section B: Snippets</h2>
-    <div class="section">
-        <div style="margin-bottom: 20px;">
-            <h3>Create 27-Slot GUI</h3>
-            <pre><code id="code-gui">Inventory gui = Bukkit.createInventory(null, 27, "§5Amethyst Menu");
-ItemStack item = new ItemStack(Material.AMETHYST_SHARD);
-gui.setItem(13, item);
-player.openInventory(gui);</code><button class="copy-btn" onclick="copyCode('code-gui')">COPY</button></pre>
-        </div>
-        <div>
-            <h3>Action Bar Message</h3>
-            <pre><code id="code-action">player.spigot().sendMessage(ChatMessageType.ACTION_BAR, 
-    new TextComponent("§dAbility Ready!"));</code><button class="copy-btn" onclick="copyCode('code-action')">COPY</button></pre>
-        </div>
+    <div class="panel">
+        <div class="panel-title">Item Meta</div>
+        <label style="font-size: 10px;">Display Name</label>
+        <input type="text" id="item-name" placeholder="§6Special Item" oninput="updateItemMeta()">
+        <label style="font-size: 10px;">Lore (One per line)</label>
+        <textarea id="item-lore" rows="5" placeholder="Line 1&#10;Line 2" oninput="updateItemMeta()"></textarea>
+        <button onclick="clearSlot()">Clear Slot</button>
     </div>
 
-    <h2>Section C: Reference</h2>
-    <div class="section">
-        <input type="text" id="table-search" placeholder="Search particles or sounds..." onkeyup="filterTable()">
-        <table id="ref-table">
-            <thead>
-                <tr>
-                    <th>Type</th>
-                    <th>Namespace Key</th>
-                </tr>
-            </thead>
-            <tbody id="table-body">
-                <tr><td>Particle</td><td>FLAME</td></tr>
-                <tr><td>Particle</td><td>SOUL_FIRE_FLAME</td></tr>
-                <tr><td>Particle</td><td>HEART</td></tr>
-                <tr><td>Sound</td><td>ENTITY_PLAYER_LEVELUP</td></tr>
-                <tr><td>Sound</td><td>BLOCK_AMETHYST_BLOCK_CHIME</td></tr>
-                <tr><td>Entity</td><td>ZOMBIE</td></tr>
-                <tr><td>Entity</td><td>END_CRYSTAL</td></tr>
-            </tbody>
-        </table>
+    <div class="export-box">
+        <div class="panel-title">Generated Spigot Code</div>
+        <pre id="code-output"><code>// Your code will appear here...</code></pre>
+        <button onclick="copyCode()">Copy to Clipboard</button>
     </div>
+
 </div>
 
 <script>
-    // 1. Chest Slot Logic
-    function updateChestGrid() {
-        const size = document.getElementById('chest-type').value;
-        const grid = document.getElementById('chest-display');
+    let currentBrush = 'AIR';
+    let selectedSlot = null;
+    let inventoryData = {}; // Stores meta by slot index
+
+    function initGrid(size) {
+        const grid = document.getElementById('gui-grid');
         grid.innerHTML = '';
+        grid.style.gridTemplateColumns = `repeat(9, 50px)`;
+        
         for (let i = 0; i < size; i++) {
             const slot = document.createElement('div');
-            slot.className = 'slot';
-            slot.title = `Slot ${i}`;
-            slot.onclick = () => {
-                navigator.clipboard.writeText(i);
-                alert('Copied Slot ID: ' + i);
-            };
+            slot.className = 'gui-slot';
+            slot.dataset.index = i;
+            slot.onclick = () => handleSlotClick(i);
             grid.appendChild(slot);
         }
+        generateCode();
     }
 
-    // 2. Stack Math
-    function convertStacks() {
-        const val = parseInt(document.getElementById('item-amount').value) || 0;
-        const dc = Math.floor(val / (64 * 54));
-        const remAfterDC = val % (64 * 54);
-        const st = Math.floor(remAfterDC / 64);
-        const rem = remAfterDC % 64;
-
-        document.getElementById('res-dc').innerText = dc;
-        document.getElementById('res-st').innerText = st;
-        document.getElementById('res-rem').innerText = rem;
+    function setBrush(material) {
+        currentBrush = material;
+        document.getElementById('current-brush').innerText = material;
     }
 
-    // 3. Color Codes
-    function previewColors() {
-        const colors = {
-            '0': '#000000', '1': '#0000AA', '2': '#00AA00', '3': '#00AAAA',
-            '4': '#AA0000', '5': '#AA00AA', '6': '#FFAA00', '7': '#AAAAAA',
-            '8': '#555555', '9': '#5555FF', 'a': '#55FF55', 'b': '#55FFFF',
-            'c': '#FF5555', 'd': '#FF55FF', 'e': '#FFFF55', 'f': '#FFFFFF'
-        };
-        let text = document.getElementById('color-input').value;
-        let html = text.replace(/[&§]([0-9a-fA-F])/g, (match, code) => {
-            return `</span><span style="color:${colors[code.toLowerCase()]}">`;
-        });
-        document.getElementById('color-preview').innerHTML = '<span>' + html + '</span>';
+    function handleSlotClick(index) {
+        const slots = document.querySelectorAll('.gui-slot');
+        slots.forEach(s => s.classList.remove('selected'));
+        
+        const slot = slots[index];
+        slot.classList.add('selected');
+        selectedSlot = index;
+
+        // Apply Brush
+        if (currentBrush !== 'AIR') {
+            if (!inventoryData[index]) inventoryData[index] = { material: currentBrush, name: '', lore: '' };
+            inventoryData[index].material = currentBrush;
+            slot.innerText = currentBrush.substring(0, 4); // Visual shortcut
+        }
+
+        // Load Meta into Inputs
+        const data = inventoryData[index] || { material: 'AIR', name: '', lore: '' };
+        document.getElementById('item-name').value = data.name;
+        document.getElementById('item-lore').value = data.lore;
+        
+        generateCode();
     }
 
-    // 4. Command Gen
-    function generateCommand() {
-        const mat = document.getElementById('nbt-mat').value || 'stone';
-        const name = document.getElementById('nbt-name').value || 'Custom Item';
-        const cmd = `/give @p ${mat}[custom_name='{"text":"${name}"}'] 1`;
-        navigator.clipboard.writeText(cmd);
-        alert('Command copied to clipboard!');
+    function updateItemMeta() {
+        if (selectedSlot === null) return;
+        if (!inventoryData[selectedSlot]) return;
+
+        inventoryData[selectedSlot].name = document.getElementById('item-name').value;
+        inventoryData[selectedSlot].lore = document.getElementById('item-lore').value;
+        generateCode();
     }
 
-    // 5. Filter Table
-    function filterTable() {
-        const query = document.getElementById('table-search').value.toLowerCase();
-        const rows = document.querySelectorAll('#table-body tr');
-        rows.forEach(row => {
-            row.style.display = row.innerText.toLowerCase().includes(query) ? '' : 'none';
-        });
+    function clearSlot() {
+        if (selectedSlot === null) return;
+        delete inventoryData[selectedSlot];
+        document.querySelectorAll('.gui-slot')[selectedSlot].innerText = '';
+        generateCode();
     }
 
-    function copyCode(id) {
-        const code = document.getElementById(id).innerText;
-        navigator.clipboard.writeText(code);
+    function generateCode() {
+        const title = document.getElementById('gui-name').value;
+        const size = document.querySelectorAll('.gui-slot').length;
+        let code = `<span class="keyword">public void</span> openGui(Player player) {\n`;
+        code += `    Inventory inv = Bukkit.createInventory(<span class="keyword">null</span>, ${size}, <span class="string">"${title}"</span>);\n\n`;
+
+        for (const [slot, data] of Object.entries(inventoryData)) {
+            code += `    <span class="comment">// Slot ${slot}</span>\n`;
+            code += `    ItemStack item${slot} = <span class="keyword">new</span> ItemStack(Material.${data.material});\n`;
+            code += `    ItemMeta meta${slot} = item${slot}.getItemMeta();\n`;
+            
+            if (data.name) {
+                code += `    meta${slot}.setDisplayName(<span class="string">"${data.name.replace(/&/g, '§')}"</span>);\n`;
+            }
+            if (data.lore) {
+                const loreLines = data.lore.split('\n').map(l => `"<span class="string">${l.replace(/&/g, '§')}</span>"`).join(', ');
+                code += `    meta${slot}.setLore(Arrays.asList(${loreLines}));\n`;
+            }
+            
+            code += `    item${slot}.setItemMeta(meta${slot});\n`;
+            code += `    inv.setItem(${slot}, item${slot});\n\n`;
+        }
+
+        code += `    player.openInventory(inv);\n}`;
+        document.getElementById('code-output').innerHTML = `<code>${code}</code>`;
     }
 
-    // Init
-    updateChestGrid();
+    function resizeGrid(size) {
+        inventoryData = {};
+        initGrid(size);
+    }
+
+    function copyCode() {
+        const text = document.getElementById('code-output').innerText;
+        navigator.clipboard.writeText(text);
+        alert("Java code copied!");
+    }
+
+    // Start
+    initGrid(27);
 </script>
 
 </body>
