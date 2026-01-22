@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>End-Tier Developer Toolkit</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --obsidian: #120b1a;
+            --void-grey: #1a1a1a;
+            --amethyst: #9966cc;
+            --end-rod: #e0d0f0;
+            --dragon-breath: #6a329f;
+            --mc-shadow: #373737;
+            --mc-panel: #c6c6c6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: radial-gradient(circle at center, #1d112b 0%, var(--obsidian) 100%);
+            color: #ffffff;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Press Start 2P', cursive;
+            color: var(--amethyst);
+            text-shadow: 3px 3px 0px var(--dragon-breath);
+            text-transform: uppercase;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            border-bottom: 4px solid var(--amethyst);
+        }
+
+        /* Layout Sections */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section {
+            margin-bottom: 60px;
+            padding: 25px;
+            background: rgba(26, 26, 26, 0.8);
+            border: 2px solid var(--amethyst);
+            box-shadow: 0 0 15px rgba(153, 102, 204, 0.2);
+            border-radius: 4px;
+        }
+
+        /* Section A: The Toolbox */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: #251a33;
+            border: 2px solid var(--dragon-breath);
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--end-rod);
+            box-shadow: 0 0 10px var(--amethyst);
+        }
+
+        /* Tool 1: Chest Grid */
+        #chest-display {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 4px;
+            background: #8b8b8b;
+            padding: 8px;
+            border: 4px solid #373737;
+            margin-top: 10px;
+        }
+
+        .slot {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #8b8b8b;
+            border: 2px solid;
+            border-color: #373737 #ffffff #ffffff #373737;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #333;
+        }
+
+        .slot:hover {
+            background: var(--amethyst);
+            color: white;
+        }
+
+        /* Inputs & Buttons */
+        input, select, textarea {
+            width: 100%;
+            background: #000;
+            border: 1px solid var(--amethyst);
+            color: var(--end-rod);
+            padding: 10px;
+            margin: 10px 0;
+            font-family: inherit;
+        }
+
+        .mc-button {
+            background: #7e7e7e;
+            border: 3px solid;
+            border-color: #cfcfcf #313131 #313131 #cfcfcf;
+            color: white;
+            padding: 10px 15px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            width: 100%;
+        }
+
+        .mc-button:active {
+            border-color: #313131 #cfcfcf #cfcfcf #313131;
+        }
+
+        /* Section B: Code Repository */
+        pre {
+            background: #0d0814;
+            padding: 15px;
+            border-left: 4px solid var(--amethyst);
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--dragon-breath);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* Section C: Data Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th {
+            background: var(--dragon-breath);
+            text-align: left;
+            padding: 12px;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid var(--mc-shadow);
+        }
+
+        tr:hover {
+            background: rgba(153, 102, 204, 0.1);
+        }
+
+        #color-preview {
+            min-height: 40px;
+            background: #000;
+            padding: 10px;
+            border: 1px inset var(--amethyst);
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>End-Tier DevKit</h1>
+    <p>The ultimate utility belt for Minecraft Spigot/Paper developers.</p>
+</div>
+
+<div class="container">
+    
+    <h2 style="margin-bottom: 20px;">Section A: Toolbox</h2>
+    <div class="section grid-layout">
+        <div class="card">
+            <h3>Slot Mapper</h3>
+            <select id="chest-type" onchange="updateChestGrid()">
+                <option value="27">Single Chest (27)</option>
+                <option value="54" selected>Double Chest (54)</option>
+                <option value="36">Player Inventory (36)</option>
+            </select>
+            <div id="chest-display"></div>
+            <p style="font-size: 11px; margin-top: 10px;">Click a slot to copy ID.</p>
+        </div>
+
+        <div class="card">
+            <h3>Stack Converter</h3>
+            <input type="number" id="item-amount" placeholder="Enter item count..." oninput="convertStacks()">
+            <div id="stack-results" style="margin-top: 10px;">
+                <p>Double Chests: <span id="res-dc" class="amethyst">0</span></p>
+                <p>Stacks (64): <span id="res-st" class="amethyst">0</span></p>
+                <p>Remainder: <span id="res-rem" class="amethyst">0</span></p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Color Preview</h3>
+            <input type="text" id="color-input" placeholder="Enter text (e.g. &5Hello &dWorld)" oninput="previewColors()">
+            <div id="color-preview"></div>
+        </div>
+
+        <div class="card">
+            <h3>NBT /give</h3>
+            <input type="text" id="nbt-mat" placeholder="Material (e.g. diamond_sword)">
+            <input type="text" id="nbt-name" placeholder="Display Name">
+            <button class="mc-button" onclick="generateCommand()">Generate</button>
+        </div>
+    </div>
+
+    <h2>Section B: Snippets</h2>
+    <div class="section">
+        <div style="margin-bottom: 20px;">
+            <h3>Create 27-Slot GUI</h3>
+            <pre><code id="code-gui">Inventory gui = Bukkit.createInventory(null, 27, "§5Amethyst Menu");
+ItemStack item = new ItemStack(Material.AMETHYST_SHARD);
+gui.setItem(13, item);
+player.openInventory(gui);</code><button class="copy-btn" onclick="copyCode('code-gui')">COPY</button></pre>
+        </div>
+        <div>
+            <h3>Action Bar Message</h3>
+            <pre><code id="code-action">player.spigot().sendMessage(ChatMessageType.ACTION_BAR, 
+    new TextComponent("§dAbility Ready!"));</code><button class="copy-btn" onclick="copyCode('code-action')">COPY</button></pre>
+        </div>
+    </div>
+
+    <h2>Section C: Reference</h2>
+    <div class="section">
+        <input type="text" id="table-search" placeholder="Search particles or sounds..." onkeyup="filterTable()">
+        <table id="ref-table">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Namespace Key</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <tr><td>Particle</td><td>FLAME</td></tr>
+                <tr><td>Particle</td><td>SOUL_FIRE_FLAME</td></tr>
+                <tr><td>Particle</td><td>HEART</td></tr>
+                <tr><td>Sound</td><td>ENTITY_PLAYER_LEVELUP</td></tr>
+                <tr><td>Sound</td><td>BLOCK_AMETHYST_BLOCK_CHIME</td></tr>
+                <tr><td>Entity</td><td>ZOMBIE</td></tr>
+                <tr><td>Entity</td><td>END_CRYSTAL</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // 1. Chest Slot Logic
+    function updateChestGrid() {
+        const size = document.getElementById('chest-type').value;
+        const grid = document.getElementById('chest-display');
+        grid.innerHTML = '';
+        for (let i = 0; i < size; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'slot';
+            slot.title = `Slot ${i}`;
+            slot.onclick = () => {
+                navigator.clipboard.writeText(i);
+                alert('Copied Slot ID: ' + i);
+            };
+            grid.appendChild(slot);
+        }
+    }
+
+    // 2. Stack Math
+    function convertStacks() {
+        const val = parseInt(document.getElementById('item-amount').value) || 0;
+        const dc = Math.floor(val / (64 * 54));
+        const remAfterDC = val % (64 * 54);
+        const st = Math.floor(remAfterDC / 64);
+        const rem = remAfterDC % 64;
+
+        document.getElementById('res-dc').innerText = dc;
+        document.getElementById('res-st').innerText = st;
+        document.getElementById('res-rem').innerText = rem;
+    }
+
+    // 3. Color Codes
+    function previewColors() {
+        const colors = {
+            '0': '#000000', '1': '#0000AA', '2': '#00AA00', '3': '#00AAAA',
+            '4': '#AA0000', '5': '#AA00AA', '6': '#FFAA00', '7': '#AAAAAA',
+            '8': '#555555', '9': '#5555FF', 'a': '#55FF55', 'b': '#55FFFF',
+            'c': '#FF5555', 'd': '#FF55FF', 'e': '#FFFF55', 'f': '#FFFFFF'
+        };
+        let text = document.getElementById('color-input').value;
+        let html = text.replace(/[&§]([0-9a-fA-F])/g, (match, code) => {
+            return `</span><span style="color:${colors[code.toLowerCase()]}">`;
+        });
+        document.getElementById('color-preview').innerHTML = '<span>' + html + '</span>';
+    }
+
+    // 4. Command Gen
+    function generateCommand() {
+        const mat = document.getElementById('nbt-mat').value || 'stone';
+        const name = document.getElementById('nbt-name').value || 'Custom Item';
+        const cmd = `/give @p ${mat}[custom_name='{"text":"${name}"}'] 1`;
+        navigator.clipboard.writeText(cmd);
+        alert('Command copied to clipboard!');
+    }
+
+    // 5. Filter Table
+    function filterTable() {
+        const query = document.getElementById('table-search').value.toLowerCase();
+        const rows = document.querySelectorAll('#table-body tr');
+        rows.forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(query) ? '' : 'none';
+        });
+    }
+
+    function copyCode(id) {
+        const code = document.getElementById(id).innerText;
+        navigator.clipboard.writeText(code);
+    }
+
+    // Init
+    updateChestGrid();
+</script>
+
+</body>
+</html>
