@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>End-Tier GUI Architect v2</title>
+    <title>End-Tier GUI Architect v3</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -14,7 +14,7 @@
             --mc-gui: #c6c6c6;
             --mc-border-dark: #373737;
             --mc-border-light: #ffffff;
-            --mc-highlight: #8b8b8b;
+            --tooltip-bg: rgba(16, 0, 16, 0.95);
         }
 
         * { box-sizing: border-box; }
@@ -26,37 +26,37 @@
             padding: 20px;
             margin: 0;
             height: 100vh;
-            overflow: hidden; /* App-like feel */
+            overflow: hidden;
+            user-select: none; /* Important for dragging */
         }
 
         h1 {
             font-family: 'Press Start 2P', cursive;
             color: var(--amethyst);
             text-align: center;
-            font-size: 20px;
-            margin-bottom: 20px;
+            font-size: 18px;
+            margin-bottom: 15px;
             text-shadow: 2px 2px 0px #000;
         }
 
-        /* Main Layout */
+        /* LAYOUT */
         .editor-container {
             display: grid;
-            grid-template-columns: 280px 1fr 300px; /* Sidebar | Canvas | Properties */
+            grid-template-columns: 280px 1fr 320px;
             gap: 20px;
-            height: calc(100vh - 80px);
+            height: calc(100vh - 70px);
             max-width: 1600px;
             margin: 0 auto;
         }
 
-        /* Panels */
         .panel {
             background: rgba(45, 27, 77, 0.9);
             border: 2px solid var(--amethyst);
             display: flex;
             flex-direction: column;
             border-radius: 4px;
-            overflow: hidden;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            overflow: hidden;
         }
 
         .panel-header {
@@ -75,7 +75,7 @@
             flex: 1;
         }
 
-        /* ITEM PALETTE (Left) */
+        /* PALETTE */
         .search-bar {
             width: 100%;
             background: #000;
@@ -89,7 +89,7 @@
         .palette-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
-            gap: 5px;
+            gap: 4px;
         }
 
         .palette-item {
@@ -101,21 +101,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.1s;
         }
 
-        .palette-item:hover {
-            border-color: var(--end-rod);
-            background: rgba(255,255,255,0.1);
-        }
+        .palette-item:hover { border-color: var(--end-rod); background: rgba(255,255,255,0.1); }
+        .palette-item img { width: 32px; height: 32px; image-rendering: pixelated; }
 
-        .palette-item img {
-            width: 32px;
-            height: 32px;
-            image-rendering: pixelated;
-        }
-
-        /* GUI CANVAS (Center) */
+        /* CANVAS AREA */
         .canvas-area {
             display: flex;
             flex-direction: column;
@@ -123,6 +114,7 @@
             justify-content: center;
             background: rgba(0,0,0,0.2);
             border-radius: 4px;
+            position: relative; /* Context for tooltip */
         }
 
         .gui-frame {
@@ -130,13 +122,14 @@
             padding: 10px;
             border: 4px solid var(--mc-border-dark);
             border-radius: 2px;
-            box-shadow: 10px 10px 20px rgba(0,0,0,0.5);
+            box-shadow: 10px 10px 30px rgba(0,0,0,0.6);
+            position: relative;
         }
 
         #gui-grid {
             display: grid;
             grid-template-columns: repeat(9, 50px);
-            gap: 4px; /* Minecraft standard gap */
+            gap: 4px;
         }
 
         .gui-slot {
@@ -149,14 +142,11 @@
             cursor: pointer;
         }
 
-        .gui-slot:hover {
-            background: #a0a0a0;
-        }
-
-        .gui-slot.selected {
-            outline: 3px solid var(--amethyst);
-            z-index: 10;
-        }
+        .gui-slot:hover { background: #a0a0a0; }
+        .gui-slot.selected { outline: 3px solid var(--amethyst); z-index: 10; }
+        
+        /* Dragging Visuals */
+        .gui-slot.drag-over { background: #bdbdbd; border-color: var(--amethyst); }
 
         .gui-slot img {
             width: 40px;
@@ -166,13 +156,34 @@
             left: 50%;
             transform: translate(-50%, -50%);
             image-rendering: pixelated;
-            pointer-events: none;
+            pointer-events: none; /* Allows clicks to pass to div */
         }
 
-        /* PROPERTIES (Right) */
+        /* TOOLTIP */
+        #mc-tooltip {
+            position: fixed;
+            background: var(--tooltip-bg);
+            border: 2px solid #2a004e;
+            padding: 8px;
+            border-radius: 4px;
+            pointer-events: none;
+            z-index: 9999;
+            display: none;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.5);
+            min-width: 150px;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        #tooltip-title { color: #a020f0; font-weight: bold; margin-bottom: 4px; display: block; text-shadow: 1px 1px 0 #000; }
+        #tooltip-lore { color: #b0b0b0; font-size: 11px; }
+
+        /* PROPERTIES */
         label { display: block; margin: 10px 0 5px; font-size: 12px; color: var(--end-rod); }
         
-        input, textarea, select {
+        input, textarea {
             width: 100%;
             background: #111;
             border: 1px solid #555;
@@ -180,18 +191,10 @@
             padding: 8px;
             font-family: 'JetBrains Mono', monospace;
         }
+        
+        input:focus, textarea:focus { border-color: var(--amethyst); outline: none; }
 
-        input:focus, textarea:focus {
-            border-color: var(--amethyst);
-            outline: none;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
         button {
             background: var(--amethyst);
             border: none;
@@ -201,14 +204,10 @@
             cursor: pointer;
             font-family: 'Press Start 2P', cursive;
             font-size: 10px;
-            transition: 0.2s;
         }
-
         button:hover { filter: brightness(1.2); }
-        button.secondary { background: #555; }
         button.danger { background: #cc4444; }
 
-        /* Code Block */
         .code-preview {
             margin-top: 20px;
             background: #1e1e1e;
@@ -222,32 +221,32 @@
             border: 1px solid #333;
         }
         
-        .code-keyword { color: #c586c0; }
-        .code-string { color: #ce9178; }
-        .code-comment { color: #6a9955; }
-        .code-class { color: #4ec9b0; }
-
+        .keyword { color: #c586c0; }
+        .string { color: #ce9178; }
+        .comment { color: #6a9955; }
     </style>
 </head>
 <body>
 
-<h1>GUI Architect v2.0</h1>
+<div id="mc-tooltip">
+    <span id="tooltip-title"></span>
+    <div id="tooltip-lore"></div>
+</div>
+
+<h1>GUI Architect v3.0 <span style="font-size:10px; color:#888;">(Drag & Drop Enabled)</span></h1>
 
 <div class="editor-container">
     
     <div class="panel">
-        <div class="panel-header">Item Repository</div>
+        <div class="panel-header">Items</div>
         <div class="panel-content">
-            <input type="text" class="search-bar" placeholder="Search items..." id="search-input" onkeyup="filterPalette()">
-            <div class="palette-grid" id="palette-grid">
-                </div>
+            <input type="text" class="search-bar" placeholder="Search..." id="search-input" onkeyup="filterPalette()">
+            <div class="palette-grid" id="palette-grid"></div>
         </div>
     </div>
 
     <div class="canvas-area">
-        <div style="margin-bottom: 15px;">
-            <input type="text" id="gui-title" value="Menu Title" style="text-align: center; font-size: 16px; width: 300px; background: transparent; border: none; border-bottom: 2px solid var(--amethyst);">
-        </div>
+        <input type="text" id="gui-title" value="Menu Title" style="text-align: center; font-size: 16px; width: 300px; background: transparent; border: none; border-bottom: 2px solid var(--amethyst); margin-bottom: 15px;">
         
         <div class="gui-frame">
             <div id="gui-grid"></div>
@@ -257,117 +256,77 @@
             <button onclick="setGridSize(27)">3 Rows</button>
             <button onclick="setGridSize(54)">6 Rows</button>
         </div>
-        <p style="margin-top:10px; font-size: 12px; color: #888;">Current Brush: <strong id="active-brush" style="color:var(--amethyst)">None</strong></p>
+        <p style="margin-top:10px; font-size: 12px; color: #888;">Active Brush: <strong id="active-brush" style="color:var(--amethyst)">None</strong></p>
     </div>
 
     <div class="panel">
-        <div class="panel-header">Slot Properties</div>
+        <div class="panel-header">Meta Data</div>
         <div class="panel-content">
-            <div id="prop-controls">
-                <label>Material</label>
-                <input type="text" id="prop-mat" readonly style="color: #888;">
+            <label>Item ID</label>
+            <input type="text" id="prop-mat" readonly style="color: #666;">
 
-                <label>Display Name (& codes supported)</label>
-                <input type="text" id="prop-name" placeholder="&dExcalibur" oninput="updateSlotData()">
+            <label>Name (& codes)</label>
+            <input type="text" id="prop-name" placeholder="&dCool Sword" oninput="updateSlotData()">
 
-                <label>Lore (Lines)</label>
-                <textarea id="prop-lore" rows="5" placeholder="&7A legendary sword..." oninput="updateSlotData()"></textarea>
+            <label>Lore</label>
+            <textarea id="prop-lore" rows="5" placeholder="&7Line 1&#10;&7Line 2" oninput="updateSlotData()"></textarea>
 
-                <div class="btn-group">
-                    <button class="danger" onclick="clearSelectedSlot()">Clear</button>
-                </div>
+            <div class="btn-group">
+                <button class="danger" onclick="clearSelectedSlot()">Clear</button>
             </div>
 
-            <label style="margin-top: 20px;">Generated Java Code</label>
+            <label style="margin-top: 20px;">Code Output</label>
             <div class="code-preview" id="code-output"></div>
-            <button onclick="copyCode()" style="margin-top: 10px;">Copy Code</button>
+            <button onclick="copyCode()" style="margin-top: 10px;">Copy Java</button>
         </div>
     </div>
-
 </div>
 
 <script>
-    // --- DATA ---
-    // Using a stable CDN for images. 'type' helps us build the URL correctly.
-    // block = textures/block, item = textures/item
+    const ASSET_BASE = "https://assets.mcasset.cloud/1.20.1/assets/minecraft/textures";
+    
+    // EXTENDED DATABASE
     const DB = [
-        // TOOLS & WEAPONS
         { id: 'DIAMOND_SWORD', type: 'item', name: 'diamond_sword' },
-        { id: 'NETHERITE_SWORD', type: 'item', name: 'netherite_sword' },
-        { id: 'DIAMOND_PICKAXE', type: 'item', name: 'diamond_pickaxe' },
+        { id: 'NETHERITE_AXE', type: 'item', name: 'netherite_axe' },
         { id: 'BOW', type: 'item', name: 'bow' },
         { id: 'ARROW', type: 'item', name: 'arrow' },
-        { id: 'SHIELD', type: 'item', name: 'shield' },
-        { id: 'TRIDENT', type: 'item', name: 'trident' },
-        
-        // ARMOR
-        { id: 'DIAMOND_HELMET', type: 'item', name: 'diamond_helmet' },
-        { id: 'DIAMOND_CHESTPLATE', type: 'item', name: 'diamond_chestplate' },
-        { id: 'NETHERITE_CHESTPLATE', type: 'item', name: 'netherite_chestplate' },
-        { id: 'ELYTRA', type: 'item', name: 'elytra' },
-
-        // ORES & BLOCKS
-        { id: 'DIAMOND_ORE', type: 'block', name: 'diamond_ore' },
-        { id: 'GOLD_ORE', type: 'block', name: 'gold_ore' },
-        { id: 'IRON_ORE', type: 'block', name: 'iron_ore' },
-        { id: 'EMERALD_ORE', type: 'block', name: 'emerald_ore' },
-        { id: 'AMETHYST_BLOCK', type: 'block', name: 'amethyst_block' },
-        { id: 'BEDROCK', type: 'block', name: 'bedrock' },
-        { id: 'OAK_LOG', type: 'block', name: 'oak_log' },
-        { id: 'COBBLESTONE', type: 'block', name: 'cobblestone' },
-        { id: 'CHEST', type: 'block', name: 'chest_inventory', specialUrl: true }, // Chest texture is tricky, using inv icon
-        { id: 'ENDER_CHEST', type: 'block', name: 'ender_chest_inventory', specialUrl: true },
+        { id: 'GOLDEN_APPLE', type: 'item', name: 'golden_apple' },
+        { id: 'ENCHANTED_GOLDEN_APPLE', type: 'item', name: 'enchanted_golden_apple' },
+        { id: 'ENDER_PEARL', type: 'item', name: 'ender_pearl' },
+        { id: 'FIREWORK_ROCKET', type: 'item', name: 'firework_rocket' },
+        { id: 'EXPERIENCE_BOTTLE', type: 'item', name: 'experience_bottle' },
+        { id: 'TOTEM_OF_UNDYING', type: 'item', name: 'totem_of_undying' },
+        { id: 'NETHER_STAR', type: 'item', name: 'nether_star' },
         { id: 'BEACON', type: 'block', name: 'beacon' },
         { id: 'TNT', type: 'block', name: 'tnt_side' },
-
-        // ITEMS
-        { id: 'DIAMOND', type: 'item', name: 'diamond' },
-        { id: 'GOLD_INGOT', type: 'item', name: 'gold_ingot' },
-        { id: 'IRON_INGOT', type: 'item', name: 'iron_ingot' },
-        { id: 'EMERALD', type: 'item', name: 'emerald' },
-        { id: 'NETHER_STAR', type: 'item', name: 'nether_star' },
-        { id: 'ENDER_PEARL', type: 'item', name: 'ender_pearl' },
-        { id: 'BLAZE_ROD', type: 'item', name: 'blaze_rod' },
-        { id: 'TOTEM_OF_UNDYING', type: 'item', name: 'totem_of_undying' },
-        
-        // FOOD
-        { id: 'GOLDEN_APPLE', type: 'item', name: 'golden_apple' },
-        { id: 'COOKED_BEEF', type: 'item', name: 'cooked_beef' },
-        { id: 'BREAD', type: 'item', name: 'bread' },
-        { id: 'POTION', type: 'item', name: 'potion' },
-        
-        // UTILITY
-        { id: 'PAPER', type: 'item', name: 'paper' },
+        { id: 'CHEST', type: 'block', name: 'chest_inventory', special: true },
+        { id: 'ENDER_CHEST', type: 'block', name: 'ender_chest_inventory', special: true },
+        { id: 'GRASS_BLOCK', type: 'block', name: 'grass_block_side' },
+        { id: 'DIAMOND_ORE', type: 'block', name: 'diamond_ore' },
+        { id: 'AMETHYST_SHARD', type: 'item', name: 'amethyst_shard' },
         { id: 'BOOK', type: 'item', name: 'book' },
-        { id: 'NAME_TAG', type: 'item', name: 'name_tag' },
-        { id: 'BARRIER', type: 'item', name: 'barrier' },
-        { id: 'HOPPER', type: 'item', name: 'hopper' },
+        { id: 'PAPER', type: 'item', name: 'paper' },
+        { id: 'BARRIER', type: 'item', name: 'barrier' }
     ];
-
-    // Using a reliable raw asset source (MC Assets by PrismarineJS or similar)
-    const ASSET_BASE = "https://assets.mcasset.cloud/1.20.1/assets/minecraft/textures";
 
     let state = {
         slots: {}, // { index: { id, name, lore } }
         selectedSlot: null,
         brush: null,
-        size: 54
+        size: 54,
+        dragSrc: null
     };
 
-    // --- INITIALIZATION ---
     function init() {
         renderPalette();
         renderGrid();
         updateCode();
     }
 
+    // --- IMAGES ---
     function getImageUrl(item) {
-        // Handle special cases or standard paths
-        if(item.specialUrl) {
-             // Some blocks like chests are rendered differently, mapping to a generic 2d icon if possible
-             // For simplicity in this demo, we use specific known paths or fallbacks
-             return `${ASSET_BASE}/item/${item.name}.png`; // Try item folder for inv icons first
-        }
+        if(item.special) return `${ASSET_BASE}/item/${item.name}.png`;
         return `${ASSET_BASE}/${item.type}/${item.name}.png`;
     }
 
@@ -375,96 +334,175 @@
     function renderPalette() {
         const grid = document.getElementById('palette-grid');
         grid.innerHTML = '';
-        
         const filter = document.getElementById('search-input').value.toLowerCase();
 
         DB.forEach(item => {
             if (!item.id.toLowerCase().includes(filter)) return;
-
             const div = document.createElement('div');
             div.className = 'palette-item';
-            div.title = item.id;
-            div.onclick = () => selectBrush(item);
-            
+            div.onclick = () => {
+                state.brush = item;
+                document.getElementById('active-brush').innerText = item.id;
+            };
             const img = document.createElement('img');
             img.src = getImageUrl(item);
-            img.onerror = () => { img.src = 'https://assets.mcasset.cloud/1.20.1/assets/minecraft/textures/item/barrier.png'; }; // Fallback
-
             div.appendChild(img);
             grid.appendChild(div);
         });
     }
+    
+    function filterPalette() { renderPalette(); }
 
-    function filterPalette() {
-        renderPalette();
-    }
-
-    function selectBrush(item) {
-        state.brush = item;
-        document.getElementById('active-brush').innerText = item.id;
-    }
-
-    // --- GRID CANVAS ---
-    function setGridSize(s) {
-        state.size = s;
-        renderGrid();
-        updateCode();
-    }
+    // --- GRID RENDERING ---
+    function setGridSize(s) { state.size = s; renderGrid(); updateCode(); }
 
     function renderGrid() {
         const grid = document.getElementById('gui-grid');
         grid.innerHTML = '';
-        
-        // Update Grid Size visually
-        const rows = state.size / 9;
-        // height of slot (50) + gap (4)
-        const height = (rows * 54); 
-        
-        for(let i=0; i<state.size; i++) {
+
+        for (let i = 0; i < state.size; i++) {
             const slot = document.createElement('div');
             slot.className = 'gui-slot';
-            if(state.selectedSlot === i) slot.classList.add('selected');
+            slot.dataset.index = i; // For drag events
             
-            slot.onclick = () => clickSlot(i);
+            // Selection Style
+            if (state.selectedSlot === i) slot.classList.add('selected');
 
-            // Render content if exists
-            if(state.slots[i]) {
+            // Render Item
+            if (state.slots[i]) {
                 const itemData = DB.find(x => x.id === state.slots[i].id);
-                if(itemData) {
+                if (itemData) {
                     const img = document.createElement('img');
                     img.src = getImageUrl(itemData);
                     slot.appendChild(img);
                 }
             }
 
+            // --- EVENTS ---
+            
+            // 1. Click / Paint
+            slot.onclick = () => {
+                if(state.brush) {
+                    state.slots[i] = { id: state.brush.id, name: '', lore: '' };
+                    state.brush = null; // Consume brush
+                    document.getElementById('active-brush').innerText = "None";
+                    renderGrid();
+                }
+                state.selectedSlot = i;
+                renderGrid();
+                loadProperties(i);
+            };
+
+            // 2. Right Click (Delete)
+            slot.oncontextmenu = (e) => {
+                e.preventDefault();
+                delete state.slots[i];
+                if(state.selectedSlot === i) loadProperties(null); // Clear form if selected
+                renderGrid();
+                updateCode();
+            };
+
+            // 3. Hover (Tooltip)
+            slot.onmousemove = (e) => showTooltip(e, i);
+            slot.onmouseleave = hideTooltip;
+
+            // 4. Drag & Drop
+            slot.draggable = true;
+            slot.ondragstart = (e) => handleDragStart(e, i);
+            slot.ondragover = (e) => handleDragOver(e, slot);
+            slot.ondrop = (e) => handleDrop(e, i);
+            slot.ondragleave = (e) => slot.classList.remove('drag-over');
+
             grid.appendChild(slot);
         }
     }
 
-    function clickSlot(index) {
-        // If brush is active, paint
-        if(state.brush) {
-            state.slots[index] = { 
-                id: state.brush.id, 
-                name: '', 
-                lore: '' 
-            };
-            state.brush = null; // Consume brush (optional: comment out to keep painting)
-            document.getElementById('active-brush').innerText = "None";
-            renderGrid();
+    // --- INTERACTION LOGIC ---
+
+    // Drag & Drop
+    function handleDragStart(e, index) {
+        if (!state.slots[index]) {
+            e.preventDefault(); // Cannot drag empty
+            return;
         }
-        
-        // Select logic
-        state.selectedSlot = index;
-        renderGrid(); // Redraw to show selection outline
-        loadProperties(index);
+        state.dragSrc = index;
+        e.dataTransfer.effectAllowed = "move";
+        // Hide tooltip while dragging
+        hideTooltip();
     }
 
-    // --- PROPERTIES & LOGIC ---
-    function loadProperties(index) {
+    function handleDragOver(e, slotDiv) {
+        e.preventDefault(); // Necessary to allow dropping
+        e.dataTransfer.dropEffect = "move";
+        slotDiv.classList.add('drag-over');
+    }
+
+    function handleDrop(e, targetIndex) {
+        e.preventDefault();
+        document.querySelectorAll('.gui-slot').forEach(s => s.classList.remove('drag-over'));
+
+        if (state.dragSrc === null || state.dragSrc === targetIndex) return;
+
+        // Swap Logic
+        const srcData = state.slots[state.dragSrc];
+        const targetData = state.slots[targetIndex];
+
+        state.slots[targetIndex] = srcData;
+        if (targetData) {
+            state.slots[state.dragSrc] = targetData;
+        } else {
+            delete state.slots[state.dragSrc];
+        }
+
+        // Reset Selection to follow the moved item (optional UX choice)
+        if(state.selectedSlot === state.dragSrc) state.selectedSlot = targetIndex;
+        
+        state.dragSrc = null;
+        renderGrid();
+        updateCode();
+    }
+
+
+    // Tooltip Logic
+    const tooltip = document.getElementById('mc-tooltip');
+    const ttTitle = document.getElementById('tooltip-title');
+    const ttLore = document.getElementById('tooltip-lore');
+
+    function showTooltip(e, index) {
         const data = state.slots[index];
-        if(!data) {
-            document.getElementById('prop-mat').value = "AIR";
+        if (!data) {
+            tooltip.style.display = 'none';
+            return;
+        }
+
+        // Format Title
+        const rawName = data.name || data.id;
+        ttTitle.innerHTML = rawName.replace(/&([0-9a-f])/g, '<span style="color:var(--amethyst)">$1</span>') // Simplistic color parse
+                                   .replace(/&/g, '§'); // Fallback visual
+
+        // Format Lore
+        if (data.lore) {
+            ttLore.innerHTML = data.lore.replace(/\n/g, '<br>').replace(/&/g, '§');
+            ttLore.style.display = 'block';
+        } else {
+            ttLore.style.display = 'none';
+        }
+
+        tooltip.style.display = 'block';
+        tooltip.style.left = (e.clientX + 15) + 'px';
+        tooltip.style.top = (e.clientY + 15) + 'px';
+    }
+
+    function hideTooltip() {
+        tooltip.style.display = 'none';
+    }
+
+    // --- PROPERTIES ---
+    function loadProperties(index) {
+        const data = (index !== null) ? state.slots[index] : null;
+        
+        if (!data) {
+            document.getElementById('prop-mat').value = "";
             document.getElementById('prop-name').value = "";
             document.getElementById('prop-lore').value = "";
         } else {
@@ -475,49 +513,41 @@
     }
 
     function updateSlotData() {
-        if(state.selectedSlot === null || !state.slots[state.selectedSlot]) return;
-        
+        if (state.selectedSlot === null || !state.slots[state.selectedSlot]) return;
         state.slots[state.selectedSlot].name = document.getElementById('prop-name').value;
         state.slots[state.selectedSlot].lore = document.getElementById('prop-lore').value;
         updateCode();
     }
 
     function clearSelectedSlot() {
-        if(state.selectedSlot === null) return;
+        if (state.selectedSlot === null) return;
         delete state.slots[state.selectedSlot];
         renderGrid();
-        loadProperties(state.selectedSlot);
+        loadProperties(null);
         updateCode();
     }
 
-    // --- CODE GENERATION ---
+    // --- EXPORT ---
     function updateCode() {
         const title = document.getElementById('gui-title').value;
-        let c = `<span class="code-keyword">public void</span> <span class="code-class">openGui</span>(Player player) {\n`;
-        c += `    Inventory inv = Bukkit.createInventory(<span class="code-keyword">null</span>, ${state.size}, <span class="code-string">"${title}"</span>);\n\n`;
+        let c = `<span class="keyword">public void</span> openGui(Player player) {\n`;
+        c += `    Inventory inv = Bukkit.createInventory(<span class="keyword">null</span>, ${state.size}, <span class="string">"${title}"</span>);\n\n`;
 
-        // Loop through slots
-        for(let i=0; i<state.size; i++) {
-            if(state.slots[i]) {
+        for (let i = 0; i < state.size; i++) {
+            if (state.slots[i]) {
                 const s = state.slots[i];
-                c += `    <span class="code-comment">// Slot ${i}</span>\n`;
-                c += `    ItemStack item${i} = <span class="code-keyword">new</span> ItemStack(Material.${s.id});\n`;
+                c += `    <span class="comment">// Slot ${i}</span>\n`;
+                c += `    ItemStack item${i} = <span class="keyword">new</span> ItemStack(Material.${s.id});\n`;
                 c += `    ItemMeta meta${i} = item${i}.getItemMeta();\n`;
-                
-                if(s.name) {
-                    c += `    meta${i}.setDisplayName(<span class="code-string">"${s.name.replace(/&/g, '§')}"</span>);\n`;
-                }
-                
-                if(s.lore) {
-                    const lines = s.lore.split('\n').map(l => `"<span class="code-string">${l.replace(/&/g, '§')}</span>"`).join(', ');
+                if (s.name) c += `    meta${i}.setDisplayName(<span class="string">"${s.name.replace(/&/g, '§')}"</span>);\n`;
+                if (s.lore) {
+                    const lines = s.lore.split('\n').map(l => `"<span class="string">${l.replace(/&/g, '§')}</span>"`).join(', ');
                     c += `    meta${i}.setLore(Arrays.asList(${lines}));\n`;
                 }
-
                 c += `    item${i}.setItemMeta(meta${i});\n`;
                 c += `    inv.setItem(${i}, item${i});\n\n`;
             }
         }
-        
         c += `    player.openInventory(inv);\n}`;
         document.getElementById('code-output').innerHTML = c;
     }
@@ -529,7 +559,6 @@
     }
 
     init();
-
 </script>
 </body>
 </html>
