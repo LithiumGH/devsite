@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>End-Tier GUI Architect v3</title>
+    <title>GUI Architect v4 (1.21 + Paint Mode)</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -17,7 +17,7 @@
             --tooltip-bg: rgba(16, 0, 16, 0.95);
         }
 
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; user-select: none; }
 
         body {
             background: radial-gradient(circle at center, #1a0f2e 0%, var(--obsidian) 100%);
@@ -27,25 +27,15 @@
             margin: 0;
             height: 100vh;
             overflow: hidden;
-            user-select: none; /* Important for dragging */
-        }
-
-        h1 {
-            font-family: 'Press Start 2P', cursive;
-            color: var(--amethyst);
-            text-align: center;
-            font-size: 18px;
-            margin-bottom: 15px;
-            text-shadow: 2px 2px 0px #000;
         }
 
         /* LAYOUT */
         .editor-container {
             display: grid;
-            grid-template-columns: 280px 1fr 320px;
+            grid-template-columns: 320px 1fr 340px;
             gap: 20px;
-            height: calc(100vh - 70px);
-            max-width: 1600px;
+            height: calc(100vh - 80px);
+            max-width: 1800px;
             margin: 0 auto;
         }
 
@@ -67,28 +57,27 @@
             font-size: 10px;
             text-align: center;
             font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .panel-content {
-            padding: 15px;
-            overflow-y: auto;
-            flex: 1;
-        }
+        .panel-content { padding: 10px; overflow-y: auto; flex: 1; }
 
-        /* PALETTE */
+        /* ITEM PALETTE */
         .search-bar {
             width: 100%;
             background: #000;
             border: 1px solid var(--amethyst);
             color: #fff;
-            padding: 8px;
+            padding: 10px;
             margin-bottom: 10px;
             font-family: inherit;
         }
 
         .palette-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
             gap: 4px;
         }
 
@@ -104,9 +93,10 @@
         }
 
         .palette-item:hover { border-color: var(--end-rod); background: rgba(255,255,255,0.1); }
-        .palette-item img { width: 32px; height: 32px; image-rendering: pixelated; }
+        .palette-item.active-brush { border-color: #00ff00; background: rgba(0,255,0,0.1); }
+        .palette-item img { width: 32px; height: 32px; image-rendering: pixelated; pointer-events: none; }
 
-        /* CANVAS AREA */
+        /* CANVAS */
         .canvas-area {
             display: flex;
             flex-direction: column;
@@ -114,7 +104,6 @@
             justify-content: center;
             background: rgba(0,0,0,0.2);
             border-radius: 4px;
-            position: relative; /* Context for tooltip */
         }
 
         .gui-frame {
@@ -123,18 +112,17 @@
             border: 4px solid var(--mc-border-dark);
             border-radius: 2px;
             box-shadow: 10px 10px 30px rgba(0,0,0,0.6);
-            position: relative;
         }
 
         #gui-grid {
             display: grid;
-            grid-template-columns: repeat(9, 50px);
+            grid-template-columns: repeat(9, 54px);
             gap: 4px;
         }
 
         .gui-slot {
-            width: 50px;
-            height: 50px;
+            width: 54px;
+            height: 54px;
             background: #8b8b8b;
             border: 2px solid;
             border-color: #373737 #fff #fff #373737;
@@ -144,19 +132,14 @@
 
         .gui-slot:hover { background: #a0a0a0; }
         .gui-slot.selected { outline: 3px solid var(--amethyst); z-index: 10; }
-        
-        /* Dragging Visuals */
-        .gui-slot.drag-over { background: #bdbdbd; border-color: var(--amethyst); }
-
         .gui-slot img {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             position: absolute;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             image-rendering: pixelated;
-            pointer-events: none; /* Allows clicks to pass to div */
+            pointer-events: none;
         }
 
         /* TOOLTIP */
@@ -171,150 +154,170 @@
             display: none;
             box-shadow: 4px 4px 0px rgba(0,0,0,0.5);
             min-width: 150px;
-            color: #fff;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 12px;
+            font-size: 13px;
             line-height: 1.4;
         }
         
-        #tooltip-title { color: #a020f0; font-weight: bold; margin-bottom: 4px; display: block; text-shadow: 1px 1px 0 #000; }
-        #tooltip-lore { color: #b0b0b0; font-size: 11px; }
+        .mc-text { color: #fff; text-shadow: 1px 1px 0 #000; }
 
         /* PROPERTIES */
         label { display: block; margin: 10px 0 5px; font-size: 12px; color: var(--end-rod); }
-        
         input, textarea {
-            width: 100%;
-            background: #111;
-            border: 1px solid #555;
-            color: #fff;
-            padding: 8px;
-            font-family: 'JetBrains Mono', monospace;
+            width: 100%; background: #111; border: 1px solid #555;
+            color: #fff; padding: 8px; font-family: 'JetBrains Mono', monospace;
+            user-select: text;
         }
-        
         input:focus, textarea:focus { border-color: var(--amethyst); outline: none; }
 
-        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
         button {
-            background: var(--amethyst);
-            border: none;
-            color: white;
-            padding: 10px;
-            flex: 1;
-            cursor: pointer;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 10px;
+            background: var(--amethyst); border: none; color: white;
+            padding: 12px; width: 100%; cursor: pointer;
+            font-family: 'Press Start 2P', cursive; font-size: 10px; margin-top: 10px;
         }
         button:hover { filter: brightness(1.2); }
-        button.danger { background: #cc4444; }
+        button.secondary { background: #555; }
+        button.danger { background: #aa3333; }
 
         .code-preview {
-            margin-top: 20px;
-            background: #1e1e1e;
-            padding: 10px;
-            border-radius: 4px;
-            font-size: 11px;
-            height: 200px;
-            overflow: auto;
-            white-space: pre;
-            color: #d4d4d4;
-            border: 1px solid #333;
+            margin-top: 20px; background: #1e1e1e; padding: 10px;
+            border-radius: 4px; font-size: 11px; height: 180px;
+            overflow: auto; white-space: pre; color: #d4d4d4;
+            border: 1px solid #333; user-select: text;
         }
         
-        .keyword { color: #c586c0; }
-        .string { color: #ce9178; }
-        .comment { color: #6a9955; }
+        h1 { font-family: 'Press Start 2P'; color: var(--amethyst); text-align: center; margin-bottom: 20px; }
+        
+        /* Helper for the brush indicator */
+        #brush-indicator {
+            font-size: 10px; color: #aaa; margin-top: 10px; display: flex; align-items: center; gap: 10px;
+        }
+        #brush-img { width: 24px; height: 24px; display: none; image-rendering: pixelated; }
+
     </style>
 </head>
 <body>
 
-<div id="mc-tooltip">
-    <span id="tooltip-title"></span>
-    <div id="tooltip-lore"></div>
-</div>
-
-<h1>GUI Architect v3.0 <span style="font-size:10px; color:#888;">(Drag & Drop Enabled)</span></h1>
+<h1>GUI Architect v4 <span style="font-size:12px; color:#666;">// 1.21 Ready</span></h1>
 
 <div class="editor-container">
     
     <div class="panel">
-        <div class="panel-header">Items</div>
+        <div class="panel-header">
+            <span>Library</span>
+            <button onclick="setBrush(null)" style="width: auto; padding: 5px 10px; margin:0; font-size: 8px;">CLEAR BRUSH</button>
+        </div>
         <div class="panel-content">
-            <input type="text" class="search-bar" placeholder="Search..." id="search-input" onkeyup="filterPalette()">
+            <input type="text" class="search-bar" placeholder="Search (e.g. glass, cherry, sword)" id="search-input" onkeyup="filterPalette()">
             <div class="palette-grid" id="palette-grid"></div>
         </div>
     </div>
 
     <div class="canvas-area">
-        <input type="text" id="gui-title" value="Menu Title" style="text-align: center; font-size: 16px; width: 300px; background: transparent; border: none; border-bottom: 2px solid var(--amethyst); margin-bottom: 15px;">
+        <input type="text" id="gui-title" value="My Menu" style="text-align: center; font-size: 20px; width: 300px; background: transparent; border: none; border-bottom: 2px solid var(--amethyst); margin-bottom: 20px;">
         
         <div class="gui-frame">
-            <div id="gui-grid"></div>
+            <div id="gui-grid" onmouseleave="endPaint()"></div>
         </div>
 
-        <div class="btn-group" style="width: 300px;">
-            <button onclick="setGridSize(27)">3 Rows</button>
-            <button onclick="setGridSize(54)">6 Rows</button>
+        <div id="brush-indicator">
+            Active Brush: <img id="brush-img" src=""> <span id="brush-name" style="color:var(--amethyst)">CURSOR (Drag Mode)</span>
         </div>
-        <p style="margin-top:10px; font-size: 12px; color: #888;">Active Brush: <strong id="active-brush" style="color:var(--amethyst)">None</strong></p>
+        
+        <div style="display: flex; gap: 10px; width: 300px; margin-top: 10px;">
+            <button class="secondary" onclick="setGridSize(27)">3 Rows</button>
+            <button class="secondary" onclick="setGridSize(54)">6 Rows</button>
+        </div>
     </div>
 
     <div class="panel">
-        <div class="panel-header">Meta Data</div>
+        <div class="panel-header">Item Meta</div>
         <div class="panel-content">
-            <label>Item ID</label>
-            <input type="text" id="prop-mat" readonly style="color: #666;">
+            <label>Item Type</label>
+            <input type="text" id="prop-mat" readonly style="color: #666; cursor: not-allowed;">
 
-            <label>Name (& codes)</label>
-            <input type="text" id="prop-name" placeholder="&dCool Sword" oninput="updateSlotData()">
+            <label>Display Name (Use & for colors)</label>
+            <input type="text" id="prop-name" placeholder="&bExcalibur" oninput="updateSlotData()">
 
             <label>Lore</label>
-            <textarea id="prop-lore" rows="5" placeholder="&7Line 1&#10;&7Line 2" oninput="updateSlotData()"></textarea>
+            <textarea id="prop-lore" rows="6" placeholder="&7Type description..." oninput="updateSlotData()"></textarea>
 
-            <div class="btn-group">
-                <button class="danger" onclick="clearSelectedSlot()">Clear</button>
-            </div>
+            <button class="danger" onclick="clearSelectedSlot()">Delete Slot (Right Click)</button>
 
-            <label style="margin-top: 20px;">Code Output</label>
+            <label style="margin-top: 20px;">Spigot/Paper Code</label>
             <div class="code-preview" id="code-output"></div>
-            <button onclick="copyCode()" style="margin-top: 10px;">Copy Java</button>
+            <button onclick="copyCode()">Copy Code</button>
         </div>
     </div>
 </div>
 
+<div id="mc-tooltip"></div>
+
 <script>
-    const ASSET_BASE = "https://assets.mcasset.cloud/1.20.1/assets/minecraft/textures";
+    // --- 1. CONFIG & ASSETS ---
+    const ASSET_BASE = "https://assets.mcasset.cloud/1.21/assets/minecraft/textures";
     
-    // EXTENDED DATABASE
-    const DB = [
-        { id: 'DIAMOND_SWORD', type: 'item', name: 'diamond_sword' },
-        { id: 'NETHERITE_AXE', type: 'item', name: 'netherite_axe' },
-        { id: 'BOW', type: 'item', name: 'bow' },
-        { id: 'ARROW', type: 'item', name: 'arrow' },
-        { id: 'GOLDEN_APPLE', type: 'item', name: 'golden_apple' },
-        { id: 'ENCHANTED_GOLDEN_APPLE', type: 'item', name: 'enchanted_golden_apple' },
-        { id: 'ENDER_PEARL', type: 'item', name: 'ender_pearl' },
-        { id: 'FIREWORK_ROCKET', type: 'item', name: 'firework_rocket' },
-        { id: 'EXPERIENCE_BOTTLE', type: 'item', name: 'experience_bottle' },
-        { id: 'TOTEM_OF_UNDYING', type: 'item', name: 'totem_of_undying' },
-        { id: 'NETHER_STAR', type: 'item', name: 'nether_star' },
-        { id: 'BEACON', type: 'block', name: 'beacon' },
-        { id: 'TNT', type: 'block', name: 'tnt_side' },
-        { id: 'CHEST', type: 'block', name: 'chest_inventory', special: true },
-        { id: 'ENDER_CHEST', type: 'block', name: 'ender_chest_inventory', special: true },
-        { id: 'GRASS_BLOCK', type: 'block', name: 'grass_block_side' },
-        { id: 'DIAMOND_ORE', type: 'block', name: 'diamond_ore' },
-        { id: 'AMETHYST_SHARD', type: 'item', name: 'amethyst_shard' },
-        { id: 'BOOK', type: 'item', name: 'book' },
-        { id: 'PAPER', type: 'item', name: 'paper' },
-        { id: 'BARRIER', type: 'item', name: 'barrier' }
+    // --- 2. GENERATE ITEM DATABASE ---
+    // Helper to generate variants
+    function genVariants(base, suffixes, type='block') {
+        let items = [];
+        suffixes.forEach(s => {
+            let id = `${s}_${base}`.toUpperCase();
+            let name = `${s}_${base}`.toLowerCase();
+            items.push({ id: id, name: name, type: type });
+        });
+        return items;
+    }
+
+    const COLORS = ['WHITE','ORANGE','MAGENTA','LIGHT_BLUE','YELLOW','LIME','PINK','GRAY','LIGHT_GRAY','CYAN','PURPLE','BLUE','BROWN','GREEN','RED','BLACK'];
+    const WOODS = ['OAK','SPRUCE','BIRCH','JUNGLE','ACACIA','DARK_OAK','MANGROVE','CHERRY','BAMBOO','CRIMSON','WARPED'];
+    const ORES = ['COAL','IRON','COPPER','GOLD','REDSTONE','EMERALD','LAPIS','DIAMOND'];
+
+    let DB = [
+        // Tools & Combat
+        { id: 'DIAMOND_SWORD', name: 'diamond_sword', type: 'item' },
+        { id: 'NETHERITE_SWORD', name: 'netherite_sword', type: 'item' },
+        { id: 'DIAMOND_PICKAXE', name: 'diamond_pickaxe', type: 'item' },
+        { id: 'BOW', name: 'bow', type: 'item' },
+        { id: 'ARROW', name: 'arrow', type: 'item' },
+        { id: 'TOTEM_OF_UNDYING', name: 'totem_of_undying', type: 'item' },
+        { id: 'TRIDENT', name: 'trident', type: 'item' },
+        { id: 'SHIELD', name: 'shield', type: 'item' },
+
+        // Common GUI Items
+        { id: 'BARRIER', name: 'barrier', type: 'item' },
+        { id: 'PAPER', name: 'paper', type: 'item' },
+        { id: 'BOOK', name: 'book', type: 'item' },
+        { id: 'WRITABLE_BOOK', name: 'writable_book', type: 'item' },
+        { id: 'CHEST', name: 'chest_inventory', type: 'block', special: true },
+        { id: 'ENDER_CHEST', name: 'ender_chest_inventory', type: 'block', special: true },
+        
+        // Misc
+        { id: 'AMETHYST_SHARD', name: 'amethyst_shard', type: 'item' },
+        { id: 'NETHER_STAR', name: 'nether_star', type: 'item' },
+        { id: 'ENDER_PEARL', name: 'ender_pearl', type: 'item' },
+        { id: 'GOLDEN_APPLE', name: 'golden_apple', type: 'item' },
+        { id: 'EXPERIENCE_BOTTLE', name: 'experience_bottle', type: 'item' },
     ];
 
+    // Add Variants
+    DB = DB.concat(genVariants('STAINED_GLASS_PANE', COLORS, 'block'));
+    DB = DB.concat(genVariants('WOOL', COLORS, 'block'));
+    DB = DB.concat(genVariants('CONCRETE', COLORS, 'block'));
+    DB = DB.concat(genVariants('PLANKS', WOODS, 'block'));
+    DB = DB.concat(genVariants('LOG', WOODS, 'block'));
+    DB = DB.concat(genVariants('ORE', ORES, 'block'));
+    DB = DB.concat(genVariants('INGOT', ['IRON','GOLD','COPPER','NETHERITE'], 'item'));
+    DB.push({id:'DIAMOND', name:'diamond', type:'item'});
+    DB.push({id:'EMERALD', name:'emerald', type:'item'});
+
+    // --- 3. STATE MANAGEMENT ---
     let state = {
-        slots: {}, // { index: { id, name, lore } }
+        slots: {},
         selectedSlot: null,
-        brush: null,
+        brush: null, // If null, we are in "Cursor Mode" (Drag to Move)
         size: 54,
+        isPainting: false,
         dragSrc: null
     };
 
@@ -324,36 +327,52 @@
         updateCode();
     }
 
-    // --- IMAGES ---
     function getImageUrl(item) {
-        if(item.special) return `${ASSET_BASE}/item/${item.name}.png`;
+        if(item.special) return `${ASSET_BASE}/item/${item.name}.png`; // Handles Chests
         return `${ASSET_BASE}/${item.type}/${item.name}.png`;
     }
 
-    // --- PALETTE ---
+    // --- 4. PALETTE LOGIC ---
     function renderPalette() {
         const grid = document.getElementById('palette-grid');
         grid.innerHTML = '';
-        const filter = document.getElementById('search-input').value.toLowerCase();
+        const filter = document.getElementById('search-input').value.toLowerCase().replace(/ /g, '_');
 
         DB.forEach(item => {
             if (!item.id.toLowerCase().includes(filter)) return;
             const div = document.createElement('div');
             div.className = 'palette-item';
-            div.onclick = () => {
-                state.brush = item;
-                document.getElementById('active-brush').innerText = item.id;
-            };
+            div.onclick = () => setBrush(item);
+            
             const img = document.createElement('img');
             img.src = getImageUrl(item);
+            img.onerror = () => { img.style.display='none'; }; // Hide broken textures
+            
             div.appendChild(img);
             grid.appendChild(div);
         });
     }
-    
+
     function filterPalette() { renderPalette(); }
 
-    // --- GRID RENDERING ---
+    function setBrush(item) {
+        state.brush = item;
+        const nameDisplay = document.getElementById('brush-name');
+        const imgDisplay = document.getElementById('brush-img');
+        
+        if(item) {
+            nameDisplay.innerText = item.id;
+            nameDisplay.style.color = 'var(--end-rod)';
+            imgDisplay.src = getImageUrl(item);
+            imgDisplay.style.display = 'block';
+        } else {
+            nameDisplay.innerText = "CURSOR (Drag Mode)";
+            nameDisplay.style.color = 'var(--amethyst)';
+            imgDisplay.style.display = 'none';
+        }
+    }
+
+    // --- 5. GRID & INTERACTION LOGIC ---
     function setGridSize(s) { state.size = s; renderGrid(); updateCode(); }
 
     function renderGrid() {
@@ -363,144 +382,162 @@
         for (let i = 0; i < state.size; i++) {
             const slot = document.createElement('div');
             slot.className = 'gui-slot';
-            slot.dataset.index = i; // For drag events
-            
-            // Selection Style
             if (state.selectedSlot === i) slot.classList.add('selected');
-
-            // Render Item
+            
+            // Render content
             if (state.slots[i]) {
-                const itemData = DB.find(x => x.id === state.slots[i].id);
-                if (itemData) {
-                    const img = document.createElement('img');
-                    img.src = getImageUrl(itemData);
-                    slot.appendChild(img);
-                }
+                const itemData = DB.find(x => x.id === state.slots[i].id) || {type:'item', name:'barrier'};
+                const img = document.createElement('img');
+                img.src = getImageUrl(itemData);
+                slot.appendChild(img);
             }
 
-            // --- EVENTS ---
+            // --- MOUSE EVENTS ---
             
-            // 1. Click / Paint
-            slot.onclick = () => {
-                if(state.brush) {
-                    state.slots[i] = { id: state.brush.id, name: '', lore: '' };
-                    state.brush = null; // Consume brush
-                    document.getElementById('active-brush').innerText = "None";
-                    renderGrid();
+            // 1. Mouse Down (Start Paint or Start Drag)
+            slot.onmousedown = (e) => {
+                if(e.button === 0) { // Left Click
+                    if(state.brush) {
+                        // PAINT MODE
+                        state.isPainting = true;
+                        applyBrush(i);
+                    } else {
+                        // DRAG MODE
+                        // Use standard HTML5 Drag API handling below
+                    }
+                    selectSlot(i);
                 }
-                state.selectedSlot = i;
-                renderGrid();
-                loadProperties(i);
             };
 
-            // 2. Right Click (Delete)
+            // 2. Mouse Enter (Continue Paint)
+            slot.onmouseenter = (e) => {
+                if(state.isPainting && state.brush) {
+                    applyBrush(i);
+                    selectSlot(i);
+                }
+                showTooltip(e, i);
+            };
+
+            // 3. Mouse Up (Stop Paint)
+            slot.onmouseup = () => { state.isPainting = false; };
+            
+            // 4. Mouse Leave (Tooltip)
+            slot.onmouseleave = () => {
+                document.getElementById('mc-tooltip').style.display = 'none';
+            };
+
+            // 5. Right Click (Delete)
             slot.oncontextmenu = (e) => {
                 e.preventDefault();
                 delete state.slots[i];
-                if(state.selectedSlot === i) loadProperties(null); // Clear form if selected
+                if(state.selectedSlot === i) loadProperties(null);
                 renderGrid();
                 updateCode();
             };
 
-            // 3. Hover (Tooltip)
-            slot.onmousemove = (e) => showTooltip(e, i);
-            slot.onmouseleave = hideTooltip;
-
-            // 4. Drag & Drop
-            slot.draggable = true;
-            slot.ondragstart = (e) => handleDragStart(e, i);
-            slot.ondragover = (e) => handleDragOver(e, slot);
-            slot.ondrop = (e) => handleDrop(e, i);
-            slot.ondragleave = (e) => slot.classList.remove('drag-over');
+            // 6. Native Drag API (Only enabled if NO BRUSH)
+            if (!state.brush) {
+                slot.draggable = true;
+                slot.ondragstart = (e) => {
+                    if(!state.slots[i]) { e.preventDefault(); return; }
+                    state.dragSrc = i;
+                    document.getElementById('mc-tooltip').style.display = 'none';
+                };
+                slot.ondragover = (e) => { e.preventDefault(); }; // Allow drop
+                slot.ondrop = (e) => {
+                    e.preventDefault();
+                    if(state.dragSrc === null) return;
+                    // Swap
+                    const temp = state.slots[i];
+                    state.slots[i] = state.slots[state.dragSrc];
+                    if(temp) state.slots[state.dragSrc] = temp;
+                    else delete state.slots[state.dragSrc];
+                    
+                    state.dragSrc = null;
+                    renderGrid();
+                    updateCode();
+                };
+            }
 
             grid.appendChild(slot);
         }
     }
 
-    // --- INTERACTION LOGIC ---
+    function endPaint() { state.isPainting = false; }
 
-    // Drag & Drop
-    function handleDragStart(e, index) {
-        if (!state.slots[index]) {
-            e.preventDefault(); // Cannot drag empty
-            return;
-        }
-        state.dragSrc = index;
-        e.dataTransfer.effectAllowed = "move";
-        // Hide tooltip while dragging
-        hideTooltip();
-    }
-
-    function handleDragOver(e, slotDiv) {
-        e.preventDefault(); // Necessary to allow dropping
-        e.dataTransfer.dropEffect = "move";
-        slotDiv.classList.add('drag-over');
-    }
-
-    function handleDrop(e, targetIndex) {
-        e.preventDefault();
-        document.querySelectorAll('.gui-slot').forEach(s => s.classList.remove('drag-over'));
-
-        if (state.dragSrc === null || state.dragSrc === targetIndex) return;
-
-        // Swap Logic
-        const srcData = state.slots[state.dragSrc];
-        const targetData = state.slots[targetIndex];
-
-        state.slots[targetIndex] = srcData;
-        if (targetData) {
-            state.slots[state.dragSrc] = targetData;
-        } else {
-            delete state.slots[state.dragSrc];
-        }
-
-        // Reset Selection to follow the moved item (optional UX choice)
-        if(state.selectedSlot === state.dragSrc) state.selectedSlot = targetIndex;
-        
-        state.dragSrc = null;
+    function applyBrush(index) {
+        if(!state.brush) return;
+        state.slots[index] = { id: state.brush.id, name: '', lore: '' };
         renderGrid();
         updateCode();
     }
 
+    function selectSlot(index) {
+        state.selectedSlot = index;
+        const allSlots = document.querySelectorAll('.gui-slot');
+        allSlots.forEach(s => s.classList.remove('selected'));
+        if(allSlots[index]) allSlots[index].classList.add('selected');
+        loadProperties(index);
+    }
 
-    // Tooltip Logic
-    const tooltip = document.getElementById('mc-tooltip');
-    const ttTitle = document.getElementById('tooltip-title');
-    const ttLore = document.getElementById('tooltip-lore');
+    // --- 6. TOOLTIP & COLOR PARSER ---
+    const MC_COLORS = {
+        '0': '#000000', '1': '#0000AA', '2': '#00AA00', '3': '#00AAAA',
+        '4': '#AA0000', '5': '#AA00AA', '6': '#FFAA00', '7': '#AAAAAA',
+        '8': '#555555', '9': '#5555FF', 'a': '#55FF55', 'b': '#55FFFF',
+        'c': '#FF5555', 'd': '#FF55FF', 'e': '#FFFF55', 'f': '#FFFFFF'
+    };
+
+    function parseMcColors(text) {
+        if(!text) return '';
+        let html = '';
+        let parts = text.split(/(&[0-9a-fk-or])/g);
+        let currentColor = '#ffffff'; // default white
+        let isBold = false;
+        let isItalic = false;
+
+        // Basic iteration to handle styles
+        parts.forEach(part => {
+            if(part.startsWith('&')) {
+                const code = part.charAt(1).toLowerCase();
+                if(MC_COLORS[code]) {
+                    currentColor = MC_COLORS[code];
+                    isBold = false; isItalic = false; // Reset formats on color change (MC logic)
+                } else if(code === 'l') isBold = true;
+                else if(code === 'o') isItalic = true;
+                else if(code === 'r') { currentColor = '#ffffff'; isBold = false; isItalic = false; }
+            } else if(part.length > 0) {
+                html += `<span style="color:${currentColor}; font-weight:${isBold?'bold':'normal'}; font-style:${isItalic?'italic':'normal'}">${part}</span>`;
+            }
+        });
+        return html;
+    }
 
     function showTooltip(e, index) {
         const data = state.slots[index];
-        if (!data) {
-            tooltip.style.display = 'none';
-            return;
+        if(!data) return;
+
+        const tt = document.getElementById('mc-tooltip');
+        
+        // Name
+        let nameHtml = data.name ? parseMcColors(data.name) : `<span style="color:#55FFFF">${data.id.replace(/_/g,' ')}</span>`; // Default blueish for items
+        
+        // Lore
+        let loreHtml = '';
+        if(data.lore) {
+            loreHtml = data.lore.split('\n').map(line => `<div>${parseMcColors(line)}</div>`).join('');
         }
 
-        // Format Title
-        const rawName = data.name || data.id;
-        ttTitle.innerHTML = rawName.replace(/&([0-9a-f])/g, '<span style="color:var(--amethyst)">$1</span>') // Simplistic color parse
-                                   .replace(/&/g, '§'); // Fallback visual
-
-        // Format Lore
-        if (data.lore) {
-            ttLore.innerHTML = data.lore.replace(/\n/g, '<br>').replace(/&/g, '§');
-            ttLore.style.display = 'block';
-        } else {
-            ttLore.style.display = 'none';
-        }
-
-        tooltip.style.display = 'block';
-        tooltip.style.left = (e.clientX + 15) + 'px';
-        tooltip.style.top = (e.clientY + 15) + 'px';
+        tt.innerHTML = `<div class="mc-text" style="margin-bottom:4px;">${nameHtml}</div><div class="mc-text" style="color:#aaaaaa">${loreHtml}</div>`;
+        
+        tt.style.display = 'block';
+        tt.style.left = (e.clientX + 15) + 'px';
+        tt.style.top = (e.clientY + 15) + 'px';
     }
 
-    function hideTooltip() {
-        tooltip.style.display = 'none';
-    }
-
-    // --- PROPERTIES ---
+    // --- 7. PROPERTIES & EXPORT ---
     function loadProperties(index) {
         const data = (index !== null) ? state.slots[index] : null;
-        
         if (!data) {
             document.getElementById('prop-mat').value = "";
             document.getElementById('prop-name').value = "";
@@ -516,49 +553,52 @@
         if (state.selectedSlot === null || !state.slots[state.selectedSlot]) return;
         state.slots[state.selectedSlot].name = document.getElementById('prop-name').value;
         state.slots[state.selectedSlot].lore = document.getElementById('prop-lore').value;
+        // Refresh tooltip if hovering
         updateCode();
     }
 
     function clearSelectedSlot() {
-        if (state.selectedSlot === null) return;
-        delete state.slots[state.selectedSlot];
-        renderGrid();
-        loadProperties(null);
-        updateCode();
+        if(state.selectedSlot !== null) {
+            delete state.slots[state.selectedSlot];
+            renderGrid();
+            loadProperties(null);
+            updateCode();
+        }
     }
 
-    // --- EXPORT ---
     function updateCode() {
         const title = document.getElementById('gui-title').value;
-        let c = `<span class="keyword">public void</span> openGui(Player player) {\n`;
-        c += `    Inventory inv = Bukkit.createInventory(<span class="keyword">null</span>, ${state.size}, <span class="string">"${title}"</span>);\n\n`;
+        let c = `public void openGui(Player player) {\n`;
+        c += `    Inventory inv = Bukkit.createInventory(null, ${state.size}, "${title}");\n\n`;
 
-        for (let i = 0; i < state.size; i++) {
-            if (state.slots[i]) {
-                const s = state.slots[i];
-                c += `    <span class="comment">// Slot ${i}</span>\n`;
-                c += `    ItemStack item${i} = <span class="keyword">new</span> ItemStack(Material.${s.id});\n`;
-                c += `    ItemMeta meta${i} = item${i}.getItemMeta();\n`;
-                if (s.name) c += `    meta${i}.setDisplayName(<span class="string">"${s.name.replace(/&/g, '§')}"</span>);\n`;
-                if (s.lore) {
-                    const lines = s.lore.split('\n').map(l => `"<span class="string">${l.replace(/&/g, '§')}</span>"`).join(', ');
-                    c += `    meta${i}.setLore(Arrays.asList(${lines}));\n`;
-                }
-                c += `    item${i}.setItemMeta(meta${i});\n`;
-                c += `    inv.setItem(${i}, item${i});\n\n`;
+        Object.keys(state.slots).forEach(key => {
+            const s = state.slots[key];
+            c += `    // Slot ${key}\n`;
+            c += `    ItemStack item${key} = new ItemStack(Material.${s.id});\n`;
+            c += `    ItemMeta meta${key} = item${key}.getItemMeta();\n`;
+            if (s.name) c += `    meta${key}.setDisplayName("${s.name.replace(/&/g, '§')}");\n`;
+            if (s.lore) {
+                const lines = s.lore.split('\n').map(l => `"${l.replace(/&/g, '§')}"`).join(', ');
+                c += `    meta${key}.setLore(Arrays.asList(${lines}));\n`;
             }
-        }
+            c += `    item${key}.setItemMeta(meta${key});\n`;
+            c += `    inv.setItem(${key}, item${key});\n\n`;
+        });
+
         c += `    player.openInventory(inv);\n}`;
-        document.getElementById('code-output').innerHTML = c;
+        document.getElementById('code-output').innerText = c;
     }
 
     function copyCode() {
-        const text = document.getElementById('code-output').innerText;
-        navigator.clipboard.writeText(text);
+        navigator.clipboard.writeText(document.getElementById('code-output').innerText);
         alert("Java Code Copied!");
     }
 
+    // Start
     init();
+
+    // Global Mouse Up to stop painting if mouse leaves window
+    window.onmouseup = () => { state.isPainting = false; };
 </script>
 </body>
 </html>
