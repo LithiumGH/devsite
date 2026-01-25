@@ -3,20 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MC DevSuite | The Ultimate Plugin Tool</title>
+    <title>MC DevSuite v3.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-deep: #020617;
-            --bg-panel: #0f172a;
-            --bg-lighter: #1e293b;
-            --accent: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.4);
-            --border: #334155;
-            --text-dim: #94a3b8;
-            --text-bright: #f8fafc;
-            --mc-green: #55ff55;
-            --mc-gold: #ffaa00;
+            --bg-deep: #02040a;
+            --bg-panel: #0d1117;
+            --bg-lighter: #161b22;
+            --accent: #2f81f7;
+            --accent-glow: rgba(47, 129, 247, 0.4);
+            --border: #30363d;
+            --text-dim: #8b949e;
+            --text-bright: #c9d1d9;
+            --mc-bg: rgba(0, 0, 0, 0.75);
         }
 
         * { box-sizing: border-box; outline: none; }
@@ -25,317 +24,296 @@
             font-family: 'Inter', sans-serif; height: 100vh; display: flex; overflow: hidden;
         }
 
-        /* --- NAVIGATION --- */
+        /* --- SIDE NAVIGATION --- */
         nav {
-            width: 80px; background: var(--bg-deep); border-right: 1px solid var(--border);
-            display: flex; flex-direction: column; align-items: center; padding: 25px 0; gap: 20px;
+            width: 70px; background: var(--bg-panel); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; align-items: center; padding: 20px 0; gap: 15px;
         }
         .nav-item {
-            width: 50px; height: 50px; background: var(--bg-panel); border-radius: 15px;
+            width: 45px; height: 45px; background: var(--bg-lighter); border-radius: 10px;
             display: flex; align-items: center; justify-content: center; cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid var(--border);
-            font-size: 20px;
+            transition: 0.2s; border: 1px solid var(--border); font-size: 18px;
         }
-        .nav-item:hover { border-color: var(--accent); transform: translateY(-2px); }
-        .nav-item.active { background: var(--accent); color: white; box-shadow: 0 0 20px var(--accent-glow); border: none; }
+        .nav-item:hover { border-color: var(--accent); color: var(--accent); }
+        .nav-item.active { background: var(--accent); color: white; border: none; box-shadow: 0 0 15px var(--accent-glow); }
 
-        /* --- MAIN LAYOUT --- */
+        /* --- LAYOUT --- */
         main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         header {
-            height: 70px; padding: 0 40px; display: flex; align-items: center;
+            height: 60px; padding: 0 25px; display: flex; align-items: center;
             justify-content: space-between; background: var(--bg-panel); border-bottom: 1px solid var(--border);
         }
-        .brand { font-weight: 600; letter-spacing: 2px; font-size: 20px; }
+        .brand { font-weight: 600; letter-spacing: 1px; font-size: 18px; color: #fff; }
         .brand span { color: var(--accent); }
 
-        .container { display: flex; flex: 1; overflow: hidden; }
+        .content { display: flex; flex: 1; overflow: hidden; }
         .view { display: none; width: 100%; height: 100%; overflow: hidden; }
         .view.active { display: flex; }
 
-        /* --- GUI EDITOR COMPONENTS --- */
-        .sidebar { width: 350px; background: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-        .scroll-area { flex: 1; overflow-y: auto; padding: 20px; }
-        
-        .canvas { flex: 1; background: var(--bg-deep); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        
-        .inv-card { background: #c6c6c6; padding: 15px; border: 4px solid #555; box-shadow: 0 25px 50px rgba(0,0,0,0.6); }
-        .inv-grid { display: grid; grid-template-columns: repeat(9, 44px); gap: 2px; }
-        .slot {
-            width: 44px; height: 44px; background: #8b8b8b; border: 3px solid;
-            border-color: #373737 #ffffff #ffffff #373737; display: flex;
-            align-items: center; justify-content: center; cursor: pointer; position: relative;
-        }
-        .slot.selected { border-color: var(--accent); box-shadow: inset 0 0 10px var(--accent); }
-        .slot img { width: 32px; height: 32px; image-rendering: pixelated; pointer-events: none; }
+        /* --- GUI & TAB COMPONENTS --- */
+        .sidebar { width: 320px; background: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .scroll { flex: 1; overflow-y: auto; padding: 15px; }
+        .canvas { flex: 1; background: var(--bg-deep); display: flex; flex-direction: column; align-items: center; padding: 40px; overflow-y: auto; }
 
-        /* --- UI ELEMENTS --- */
-        .card { background: var(--bg-lighter); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; }
-        .input-group { margin-bottom: 15px; }
-        label { display: block; font-size: 11px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
-        input, textarea, select {
-            width: 100%; background: var(--bg-deep); border: 1px solid var(--border);
-            color: white; padding: 12px; border-radius: 8px; font-family: 'Inter'; transition: 0.2s;
+        /* Minecraft Styles */
+        .mc-font { font-family: 'JetBrains Mono', monospace; }
+        .tab-preview-box {
+            width: 800px; background: var(--mc-bg); border-radius: 4px; padding: 20px;
+            text-align: center; color: white; border: 1px solid #444;
         }
-        input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
-        
-        .code-box {
-            background: #000; padding: 20px; border-radius: 10px; font-family: 'JetBrains Mono';
-            font-size: 12px; color: #7dd3fc; overflow: auto; border: 1px solid var(--border); white-space: pre;
+        .tab-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin: 15px 0;
+            text-align: left; font-size: 13px;
         }
+        .tab-slot { background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 2px; }
 
-        .btn {
-            background: var(--accent); color: white; border: none; padding: 12px 24px;
-            border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; margin-top: 10px;
-        }
-
-        /* --- MOTD PREVIEW --- */
-        .motd-preview {
-            width: 700px; background: #000; padding: 15px; border: 2px solid #333;
-            font-family: 'JetBrains Mono', monospace; display: flex; gap: 15px;
-        }
-        .server-icon { width: 64px; height: 64px; background: #222; border: 1px solid #444; }
-        .motd-text { flex: 1; font-size: 16px; line-height: 1.4; }
-
-        /* --- LIBRARY --- */
-        .lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 8px; }
+        /* Item Grid */
+        .lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(38px, 1fr)); gap: 6px; }
         .lib-item {
-            width: 40px; height: 40px; background: var(--bg-deep); border: 1px solid var(--border);
-            border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+            width: 38px; height: 38px; background: var(--bg-lighter); border: 1px solid var(--border);
+            border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer;
         }
         .lib-item:hover { border-color: var(--accent); }
+        .lib-item img { width: 28px; height: 28px; image-rendering: pixelated; }
+
+        /* Code & Inputs */
+        .input-group { margin-bottom: 12px; }
+        label { display: block; font-size: 10px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 5px; font-weight: 700; }
+        input, textarea {
+            width: 100%; background: var(--bg-deep); border: 1px solid var(--border);
+            color: #fff; padding: 10px; border-radius: 6px; font-size: 13px;
+        }
+        .code-out {
+            background: #000; padding: 15px; border-radius: 8px; font-family: 'JetBrains Mono';
+            font-size: 11px; color: #7dd3fc; overflow: auto; border: 1px solid var(--border); white-space: pre;
+        }
+        .papi-item {
+            background: var(--bg-lighter); padding: 8px; border-radius: 4px; margin-bottom: 5px;
+            cursor: pointer; font-size: 12px; border: 1px solid transparent;
+        }
+        .papi-item:hover { border-color: var(--accent); }
+        .papi-tag { color: var(--accent); font-weight: bold; }
+
+        .btn {
+            background: var(--accent); color: white; border: none; padding: 10px;
+            border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%;
+        }
     </style>
 </head>
 <body>
 
 <nav>
-    <div class="nav-item active" onclick="showTab('gui')" title="GUI Maker">🔲</div>
-    <div class="nav-item" onclick="showTab('tab')" title="TAB & Scoreboard">📋</div>
-    <div class="nav-item" onclick="showTab('motd')" title="MOTD Creator">📡</div>
-    <div class="nav-item" onclick="showTab('cmd')" title="Command Gen">⚡</div>
+    <div class="nav-item active" onclick="setTab('gui')">🔲</div>
+    <div class="nav-item" onclick="setTab('tab')">📑</div>
+    <div class="nav-item" onclick="setTab('papi')">🧩</div>
 </nav>
 
 <main>
     <header>
-        <div class="brand">MC<span>DEVSUITE</span></div>
-        <div id="hint" style="color: var(--text-dim); font-size: 12px;">Tool: GUI Architect v2.1</div>
+        <div class="brand">MC<span>DEVSUITE</span> v3.0</div>
+        <div id="status" style="font-size: 12px; color: var(--text-dim);">Ready</div>
     </header>
 
-    <div class="container">
+    <div class="content">
         <div id="view-gui" class="view active">
             <div class="sidebar">
-                <div class="scroll-area">
-                    <div class="input-group">
-                        <label>Item Search</label>
-                        <input type="text" id="gui-search" placeholder="Type to filter..." oninput="renderLibrary()">
-                    </div>
-                    <div class="lib-grid" id="item-library"></div>
+                <div class="scroll">
+                    <input type="text" id="item-search" placeholder="Search items..." oninput="drawLibrary()" style="margin-bottom: 15px;">
+                    <div class="lib-grid" id="lib-items"></div>
                 </div>
-                <div style="padding: 20px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.2);">
-                    <label>Selected Slot Properties</label>
-                    <input type="text" id="slot-name" placeholder="Display Name" oninput="saveSlotData()">
-                    <textarea id="slot-lore" rows="4" style="margin-top:10px" placeholder="Line 1&#10;Line 2" oninput="saveSlotData()"></textarea>
+                <div style="padding:15px; border-top: 1px solid var(--border); background: var(--bg-lighter);">
+                    <label>Selected Item</label>
+                    <input type="text" id="slot-name" placeholder="Name (&bSword)" oninput="updateSlot()">
+                    <textarea id="slot-lore" rows="3" style="margin-top:8px;" placeholder="Lore (Line by line)" oninput="updateSlot()"></textarea>
                 </div>
             </div>
             <div class="canvas">
-                <input type="text" id="gui-title" value="Menu Title" style="background:transparent; border:none; text-align:center; font-size:28px; margin-bottom:20px; color:var(--accent);">
-                <div class="inv-card">
-                    <div class="inv-grid" id="gui-grid"></div>
+                <div style="background: #c6c6c6; padding: 10px; border: 3px solid #555; display: inline-block;">
+                    <div id="gui-grid" style="display: grid; grid-template-columns: repeat(9, 40px); gap: 2px;"></div>
                 </div>
-                <div style="margin-top:30px; width: 90%;">
-                    <div class="code-box" id="gui-code"></div>
-                </div>
+                <div class="code-out" id="gui-code" style="width: 100%; margin-top: 30px; height: 250px;"></div>
             </div>
         </div>
 
-        <div id="view-tab" class="view" style="padding: 40px; flex-direction: column; overflow-y: auto;">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
-                <div class="card">
-                    <h3>Header & Footer</h3>
+        <div id="view-tab" class="view">
+            <div class="sidebar">
+                <div class="scroll">
                     <div class="input-group">
-                        <label>Header Lines (JSON Array format)</label>
-                        <textarea id="tab-header" rows="3" oninput="genTabConfig()">"&bWelcome to &lMyServer", " ", "&7Online: &f%online%"</textarea>
+                        <label>Header</label>
+                        <textarea id="tab-h-in" rows="4" oninput="updateTabPreview()">"&b&lServer Name", "&7Welcome &f%player%"</textarea>
                     </div>
                     <div class="input-group">
-                        <label>Footer Lines</label>
-                        <textarea id="tab-footer" rows="3" oninput="genTabConfig()">"&7Visit &bwww.myserver.net", "&eStore: &fshop.myserver.net"</textarea>
+                        <label>Footer</label>
+                        <textarea id="tab-f-in" rows="4" oninput="updateTabPreview()">"&eStore: shop.server.net", "&7Ping: &a%ping%ms"</textarea>
                     </div>
-                    <hr style="border-color: var(--border); margin: 20px 0;">
-                    <h3>Scoreboard</h3>
-                    <input type="text" id="sb-title" value="&e&lMY SERVER" oninput="genTabConfig()" style="margin-bottom: 10px;">
-                    <textarea id="sb-lines" rows="6" oninput="genTabConfig()">"&7%date%", " ", "&fRank: &b%group%", "&fPing: &a%ping%ms", " ", "&ewww.myserver.net"</textarea>
                 </div>
-                <div>
-                    <label>Generated TAB Config (config.yml)</label>
-                    <div class="code-box" id="tab-code" style="height: 500px;"></div>
+            </div>
+            <div class="canvas">
+                <div class="tab-preview-box mc-font">
+                    <div id="tab-header-prev"></div>
+                    <div class="tab-grid" id="tab-slots-prev"></div>
+                    <div id="tab-footer-prev"></div>
                 </div>
+                <div class="code-out" id="tab-code" style="width: 100%; margin-top: 30px;"></div>
             </div>
         </div>
 
-        <div id="view-motd" class="view" style="padding: 40px; align-items: center; flex-direction: column;">
-            <div class="card" style="width: 700px;">
-                <h3>MOTD Designer</h3>
-                <input type="text" id="motd-1" maxlength="45" value="&b&lMy Minecraft Server" oninput="updateMOTD()" style="margin-bottom:10px;">
-                <input type="text" id="motd-2" maxlength="45" value="&7Join now for a &eunique &7experience!" oninput="updateMOTD()">
-            </div>
-            
-            <label>Live Preview (In-Game Look)</label>
-            <div class="motd-preview">
-                <div class="server-icon"></div>
-                <div class="motd-text" id="motd-display"></div>
-                <div style="color: #555;">5/100</div>
-            </div>
-
-            <div class="card" style="width: 700px; margin-top: 30px;">
-                <label>server.properties output</label>
-                <div class="code-box" id="motd-code"></div>
+        <div id="view-papi" class="view">
+            <div class="sidebar" style="width: 100%;">
+                <div class="scroll">
+                    <input type="text" id="papi-search" placeholder="Search Placeholders (e.g. vault, player, ping)..." oninput="drawPapi()" style="margin-bottom: 20px;">
+                    <div id="papi-list" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;"></div>
+                </div>
             </div>
         </div>
     </div>
 </main>
 
 <script>
-    // --- ITEM DATABASE GENERATOR (1.21) ---
-    const ITEMS = [];
-    const buildDb = () => {
-        const mats = ['diamond','gold','iron','netherite','stone','wooden'];
-        const types = ['sword','pickaxe','axe','shovel','hoe','helmet','chestplate','leggings','boots'];
-        mats.forEach(m => types.forEach(t => ITEMS.push(`${m}_${t}`)));
-        ITEMS.push('mace','trial_key','breeze_rod','heavy_core','apple','totem_of_undying','elytra','chest','barrel','ender_pearl','tnt','experience_bottle');
-        ['white','red','blue','green','black','orange'].forEach(c => ITEMS.push(`${c}_wool`,`${c}_concrete`,`${c}_shulker_box`));
-        ITEMS.sort();
-    };
-    buildDb();
+    // --- DATABASE & ASSETS ---
+    const ITEMS = [
+        'diamond_sword','diamond_pickaxe','netherite_axe','trident','mace','elytra','totem_of_undying','golden_apple','ender_pearl','tnt','experience_bottle',
+        'grass_block','cobblestone','oak_log','glass','chest','crafting_table','furnace','beacon','shulker_box','trial_key','heavy_core','wind_charge',
+        'white_wool','red_wool','blue_wool','iron_ingot','gold_ingot','emerald','diamond','netherite_scrap','paper','book','enchanted_book'
+    ]; // In a real app, you could fetch the full 1.21 JSON list here.
 
-    // --- STATE ---
+    const PAPI = [
+        {tag: "%player_name%", desc: "The player's username"},
+        {tag: "%player_health%", desc: "Current health value"},
+        {tag: "%vault_eco_balance_fixed%", desc: "Economy balance rounded"},
+        {tag: "%server_tps_1%", desc: "Server TPS (1 min average)"},
+        {tag: "%server_online%", desc: "Count of online players"},
+        {tag: "%rel_factionsuuid_relation_color%", desc: "Factions relation color"}
+    ];
+
     let state = {
-        brush: 'diamond_sword',
-        grid: {}, // index: {id, name, lore}
+        gui: {}, 
         selected: 0,
-        size: 54
+        brush: 'diamond_sword'
     };
 
-    const ASSET_URL = "https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/";
-
-    // --- TAB SYSTEM ---
-    function showTab(id) {
+    // --- UTILS ---
+    function setTab(t) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById('view-'+id).classList.add('active');
+        document.getElementById('view-'+t).classList.add('active');
         event.currentTarget.classList.add('active');
-        if(id === 'tab') genTabConfig();
-        if(id === 'motd') updateMOTD();
+        if(t === 'tab') updateTabPreview();
+        if(t === 'papi') drawPapi();
+    }
+
+    function mcColor(text) {
+        if(!text) return '';
+        const colors = {
+            '0':'#000000','1':'#0000AA','2':'#00AA00','3':'#00AAAA','4':'#AA0000','5':'#AA00AA','6':'#FFAA00','7':'#AAAAAA',
+            '8':'#555555','9':'#5555FF','a':'#55FF55','b':'#55FFFF','c':'#FF5555','d':'#FF55FF','e':'#FFFF55','f':'#FFFFFF'
+        };
+        return text.replace(/&([0-9a-f])/g, (m, c) => `</span><span style="color:${colors[c]}">`) + '</span>';
     }
 
     // --- GUI LOGIC ---
-    function renderLibrary() {
-        const lib = document.getElementById('item-library');
-        const search = document.getElementById('gui-search').value.toLowerCase();
-        lib.innerHTML = '';
-        ITEMS.filter(i => i.includes(search)).slice(0, 48).forEach(id => {
+    function drawLibrary() {
+        const container = document.getElementById('lib-items');
+        const filter = document.getElementById('item-search').value.toLowerCase();
+        container.innerHTML = '';
+        ITEMS.filter(i => i.includes(filter)).forEach(id => {
             const div = document.createElement('div');
             div.className = 'lib-item';
-            div.innerHTML = `<img src="${ASSET_URL}${id}.png" width="24" title="${id}">`;
-            div.onclick = () => { state.brush = id; saveSlotData(); };
-            lib.appendChild(div);
+            // Logic to handle item vs block folder
+            const img = document.createElement('img');
+            img.src = `https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${id}.png`;
+            img.onerror = () => { img.src = `https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/${id}.png`; };
+            div.appendChild(img);
+            div.onclick = () => { state.brush = id; updateSlot(); };
+            container.appendChild(div);
         });
     }
 
-    function renderGrid() {
+    function drawGrid() {
         const grid = document.getElementById('gui-grid');
         grid.innerHTML = '';
-        for(let i=0; i<state.size; i++) {
+        for(let i=0; i<54; i++) {
             const slot = document.createElement('div');
-            slot.className = `slot ${state.selected === i ? 'selected' : ''}`;
-            if(state.grid[i]) {
-                slot.innerHTML = `<img src="${ASSET_URL}${state.grid[i].id}.png">`;
+            slot.style = "width:36px; height:36px; background:#8b8b8b; border:2px solid; border-color:#373737 #fff #fff #373737; display:flex; align-items:center; justify-content:center; cursor:pointer;";
+            if(state.gui[i]) {
+                const img = document.createElement('img');
+                img.src = `https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${state.gui[i].id}.png`;
+                img.onerror = () => { img.src = `https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/${state.gui[i].id}.png`; };
+                img.style = "width:28px; height:28px; image-rendering:pixelated;";
+                slot.appendChild(img);
             }
             slot.onclick = () => {
-                if(!state.grid[i]) state.grid[i] = { id: state.brush, name: '', lore: '' };
                 state.selected = i;
-                document.getElementById('slot-name').value = state.grid[i].name;
-                document.getElementById('slot-lore').value = state.grid[i].lore;
-                renderGrid();
+                if(!state.gui[i]) state.gui[i] = {id: state.brush, name: '', lore: ''};
+                document.getElementById('slot-name').value = state.gui[i].name;
+                document.getElementById('slot-lore').value = state.gui[i].lore;
                 updateGuiCode();
+                drawGrid();
             };
             grid.appendChild(slot);
         }
     }
 
-    function saveSlotData() {
-        if(state.grid[state.selected]) {
-            state.grid[state.selected].id = state.brush;
-            state.grid[state.selected].name = document.getElementById('slot-name').value;
-            state.grid[state.selected].lore = document.getElementById('slot-lore').value;
+    function updateSlot() {
+        if(state.gui[state.selected]) {
+            state.gui[state.selected].id = state.brush;
+            state.gui[state.selected].name = document.getElementById('slot-name').value;
+            state.gui[state.selected].lore = document.getElementById('slot-lore').value;
         }
-        renderGrid();
+        drawGrid();
         updateGuiCode();
     }
 
     function updateGuiCode() {
-        const title = document.getElementById('gui-title').value;
-        let c = `public void openMenu(Player p) {\n    Inventory inv = Bukkit.createInventory(null, ${state.size}, "${title}");\n\n`;
-        Object.keys(state.grid).forEach(slot => {
-            const item = state.grid[slot];
-            c += `    ItemStack i${slot} = new ItemStack(Material.${item.id.toUpperCase()});\n`;
-            c += `    ItemMeta m${slot} = i${slot}.getItemMeta();\n`;
-            if(item.name) c += `    m${slot}.setDisplayName("${item.name.replace(/&/g,'§')}");\n`;
-            if(item.lore) {
-                const lines = item.lore.split('\n').map(l => `"${l.replace(/&/g,'§')}"`).join(', ');
-                c += `    m${slot}.setLore(Arrays.asList(${lines}));\n`;
-            }
-            c += `    i${slot}.setItemMeta(m${slot});\n    inv.setItem(${slot}, i${slot});\n\n`;
+        let code = `public void openMenu(Player player) {\n    Inventory inv = Bukkit.createInventory(null, 54, "Custom Menu");\n\n`;
+        Object.keys(state.gui).forEach(s => {
+            const it = state.gui[s];
+            code += `    ItemStack i${s} = new ItemStack(Material.${it.id.toUpperCase()});\n`;
+            code += `    ItemMeta m${s} = i${s}.getItemMeta();\n`;
+            if(it.name) code += `    m${s}.setDisplayName("${it.name.replace(/&/g, '§')}");\n`;
+            if(it.lore) code += `    m${s}.setLore(Arrays.asList(${it.lore.split('\n').map(l=>`"${l.replace(/&/g,'§')}"`).join(',')}));\n`;
+            code += `    i${s}.setItemMeta(m${s});\n    inv.setItem(${s}, i${s});\n\n`;
         });
-        c += `    p.openInventory(inv);\n}`;
-        document.getElementById('gui-code').innerText = c;
+        code += `    player.openInventory(inv);\n}`;
+        document.getElementById('gui-code').innerText = code;
     }
 
-    // --- TAB CONFIG GEN ---
-    function genTabConfig() {
-        const header = document.getElementById('tab-header').value;
-        const footer = document.getElementById('tab-footer').value;
-        const sbTitle = document.getElementById('sb-title').value;
-        const sbLines = document.getElementById('sb-lines').value;
-
-        const yaml = `header-footer:
-  enabled: true
-  designs:
-    default:
-      header:
-        - ${header.split('\n').join('\n        - ')}
-      footer:
-        - ${footer.split('\n').join('\n        - ')}
-
-scoreboard:
-  enabled: true
-  scoreboards:
-    default:
-      title: "${sbTitle}"
-      lines:
-        - ${sbLines.split('\n').join('\n        - ')}`;
+    // --- TAB LOGIC ---
+    function updateTabPreview() {
+        const h = document.getElementById('tab-h-in').value;
+        const f = document.getElementById('tab-f-in').value;
         
-        document.getElementById('tab-code').innerText = yaml;
+        document.getElementById('tab-header-prev').innerHTML = h.split(',').map(l => `<div>${mcColor(l.replace(/"/g,''))}</div>`).join('');
+        document.getElementById('tab-footer-prev').innerHTML = f.split(',').map(l => `<div>${mcColor(l.replace(/"/g,''))}</div>`).join('');
+        
+        const grid = document.getElementById('tab-slots-prev');
+        grid.innerHTML = '';
+        for(let i=0; i<20; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'tab-slot';
+            slot.innerHTML = `<span style="color:#aaa">[Player]</span> User_${i+1}`;
+            grid.appendChild(slot);
+        }
+
+        document.getElementById('tab-code').innerText = `header:\n  - ${h.split('\n').join('\n  - ')}\nfooter:\n  - ${f.split('\n').join('\n  - ')}`;
     }
 
-    // --- MOTD LOGIC ---
-    function updateMOTD() {
-        const l1 = document.getElementById('motd-1').value;
-        const l2 = document.getElementById('motd-2').value;
-        
-        const format = (t) => t.replace(/&([0-9a-fklmnor])/g, (match, p1) => {
-            const colors = {
-                '0':'#000','1':'#00a','2':'#0a0','3':'#0aa','4':'#a00','5':'#a0a','6':'#fa0','7':'#aaa',
-                '8':'#555','9':'#55f','a':'#5f5','b':'#5ff','c':'#f55','d':'#f5f','e':'#ff5','f':'#fff'
-            };
-            return `</span><span style="color:${colors[p1] || '#fff'}">`;
+    // --- PAPI LOGIC ---
+    function drawPapi() {
+        const container = document.getElementById('papi-list');
+        const filter = document.getElementById('papi-search').value.toLowerCase();
+        container.innerHTML = '';
+        PAPI.filter(p => p.tag.includes(filter) || p.desc.toLowerCase().includes(filter)).forEach(p => {
+            const div = document.createElement('div');
+            div.className = 'papi-item';
+            div.innerHTML = `<div class="papi-tag">${p.tag}</div><div style="font-size:10px; color:#888">${p.desc}</div>`;
+            div.onclick = () => { navigator.clipboard.writeText(p.tag); alert('Copied Placeholder!'); };
+            container.appendChild(div);
         });
-
-        document.getElementById('motd-display').innerHTML = `<span>${format(l1)}</span><br><span>${format(l2)}</span>`;
-        document.getElementById('motd-code').innerText = `motd=${l1}\\n${l2}`;
     }
 
-    // INIT
-    renderLibrary();
-    renderGrid();
+    drawLibrary();
+    drawGrid();
 </script>
 </body>
 </html>
