@@ -3,368 +3,339 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MC DevSuite | Professional Plugin Tools</title>
+    <title>MC DevSuite | The Ultimate Plugin Tool</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Color Palette - Dark Slate & Electric Blue */
-            --bg-deep: #0f172a;
-            --bg-panel: #1e293b;
-            --bg-hover: #334155;
+            --bg-deep: #020617;
+            --bg-panel: #0f172a;
+            --bg-lighter: #1e293b;
             --accent: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.5);
+            --accent-glow: rgba(59, 130, 246, 0.4);
+            --border: #334155;
             --text-dim: #94a3b8;
             --text-bright: #f8fafc;
-            --border: #334155;
-            --code-bg: #020617;
-            
-            /* Minecraft Specifics */
-            --mc-slot: #374151;
-            --mc-border: #1e293b;
+            --mc-green: #55ff55;
+            --mc-gold: #ffaa00;
         }
 
         * { box-sizing: border-box; outline: none; }
         body {
-            margin: 0;
-            background-color: var(--bg-deep);
-            color: var(--text-bright);
-            font-family: 'Inter', sans-serif;
-            height: 100vh;
-            display: flex;
-            overflow: hidden;
+            margin: 0; background: var(--bg-deep); color: var(--text-bright);
+            font-family: 'Inter', sans-serif; height: 100vh; display: flex; overflow: hidden;
         }
 
-        /* --- SIDE NAVIGATION --- */
+        /* --- NAVIGATION --- */
         nav {
-            width: 70px;
-            background: var(--bg-deep);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px 0;
-            gap: 20px;
+            width: 80px; background: var(--bg-deep); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; align-items: center; padding: 25px 0; gap: 20px;
         }
         .nav-item {
-            width: 45px; height: 45px;
-            background: var(--bg-panel);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid var(--border);
+            width: 50px; height: 50px; background: var(--bg-panel); border-radius: 15px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid var(--border);
+            font-size: 20px;
         }
-        .nav-item:hover { border-color: var(--accent); color: var(--accent); }
-        .nav-item.active { background: var(--accent); color: white; border: none; box-shadow: 0 0 15px var(--accent-glow); }
+        .nav-item:hover { border-color: var(--accent); transform: translateY(-2px); }
+        .nav-item.active { background: var(--accent); color: white; box-shadow: 0 0 20px var(--accent-glow); border: none; }
 
         /* --- MAIN LAYOUT --- */
-        main { flex: 1; display: flex; flex-direction: column; }
-        
+        main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         header {
-            height: 60px;
-            padding: 0 30px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--bg-panel);
-            border-bottom: 1px solid var(--border);
+            height: 70px; padding: 0 40px; display: flex; align-items: center;
+            justify-content: space-between; background: var(--bg-panel); border-bottom: 1px solid var(--border);
         }
-        .brand { font-weight: 600; letter-spacing: 1px; font-size: 18px; }
+        .brand { font-weight: 600; letter-spacing: 2px; font-size: 20px; }
         .brand span { color: var(--accent); }
 
-        .content-area { display: flex; flex: 1; overflow: hidden; }
-        .tab-content { display: none; width: 100%; height: 100%; }
-        .tab-content.active { display: flex; }
+        .container { display: flex; flex: 1; overflow: hidden; }
+        .view { display: none; width: 100%; height: 100%; overflow: hidden; }
+        .view.active { display: flex; }
 
-        /* --- GUI EDITOR SPECIFICS --- */
-        .sidebar {
-            width: 300px;
-            background: var(--bg-panel);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-        }
-        .scroll-box { flex: 1; overflow-y: auto; padding: 15px; }
+        /* --- GUI EDITOR COMPONENTS --- */
+        .sidebar { width: 350px; background: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .scroll-area { flex: 1; overflow-y: auto; padding: 20px; }
         
-        .canvas {
-            flex: 1;
-            background: var(--bg-deep);
-            background-image: radial-gradient(var(--border) 1px, transparent 1px);
-            background-size: 30px 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-        }
-
-        /* Inventory Grid Style */
-        .inventory-card {
-            background: #c6c6c6;
-            padding: 12px;
-            border-radius: 4px;
-            border: 3px solid #555;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-        .inv-grid {
-            display: grid;
-            grid-template-columns: repeat(9, 40px);
-            gap: 2px;
-        }
+        .canvas { flex: 1; background: var(--bg-deep); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        
+        .inv-card { background: #c6c6c6; padding: 15px; border: 4px solid #555; box-shadow: 0 25px 50px rgba(0,0,0,0.6); }
+        .inv-grid { display: grid; grid-template-columns: repeat(9, 44px); gap: 2px; }
         .slot {
-            width: 40px; height: 40px;
-            background: #8b8b8b;
-            border: 2px solid;
-            border-color: #373737 #ffffff #ffffff #373737;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
+            width: 44px; height: 44px; background: #8b8b8b; border: 3px solid;
+            border-color: #373737 #ffffff #ffffff #373737; display: flex;
+            align-items: center; justify-content: center; cursor: pointer; position: relative;
         }
-        .slot:hover { background: #bebebe; }
-        .slot img { width: 32px; height: 32px; image-rendering: pixelated; }
+        .slot.selected { border-color: var(--accent); box-shadow: inset 0 0 10px var(--accent); }
+        .slot img { width: 32px; height: 32px; image-rendering: pixelated; pointer-events: none; }
 
-        /* --- UI COMPONENTS --- */
+        /* --- UI ELEMENTS --- */
+        .card { background: var(--bg-lighter); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; }
         .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; font-size: 11px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 5px; }
+        label { display: block; font-size: 11px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
         input, textarea, select {
-            width: 100%;
-            background: var(--bg-deep);
-            border: 1px solid var(--border);
-            color: white;
-            padding: 10px;
-            border-radius: 6px;
-            font-family: 'Inter';
+            width: 100%; background: var(--bg-deep); border: 1px solid var(--border);
+            color: white; padding: 12px; border-radius: 8px; font-family: 'Inter'; transition: 0.2s;
         }
-        .code-output {
-            background: var(--code-bg);
-            padding: 15px;
-            border-radius: 8px;
-            font-family: 'JetBrains Mono';
-            font-size: 12px;
-            color: #7dd3fc;
-            overflow: auto;
-            max-height: 300px;
-            white-space: pre;
-            border: 1px solid var(--border);
+        input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
+        
+        .code-box {
+            background: #000; padding: 20px; border-radius: 10px; font-family: 'JetBrains Mono';
+            font-size: 12px; color: #7dd3fc; overflow: auto; border: 1px solid var(--border); white-space: pre;
         }
-        .btn {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: opacity 0.2s;
-        }
-        .btn:hover { opacity: 0.9; }
 
-        /* Library Grid */
-        .item-library {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
-            gap: 5px;
+        .btn {
+            background: var(--accent); color: white; border: none; padding: 12px 24px;
+            border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; margin-top: 10px;
         }
-        .lib-icon {
-            width: 40px; height: 40px;
-            background: var(--bg-deep);
-            border: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 4px; cursor: pointer;
+
+        /* --- MOTD PREVIEW --- */
+        .motd-preview {
+            width: 700px; background: #000; padding: 15px; border: 2px solid #333;
+            font-family: 'JetBrains Mono', monospace; display: flex; gap: 15px;
         }
-        .lib-icon:hover { border-color: var(--accent); }
-        .lib-icon.active { border-color: var(--accent); background: rgba(59, 130, 246, 0.1); }
+        .server-icon { width: 64px; height: 64px; background: #222; border: 1px solid #444; }
+        .motd-text { flex: 1; font-size: 16px; line-height: 1.4; }
+
+        /* --- LIBRARY --- */
+        .lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 8px; }
+        .lib-item {
+            width: 40px; height: 40px; background: var(--bg-deep); border: 1px solid var(--border);
+            border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+        .lib-item:hover { border-color: var(--accent); }
     </style>
 </head>
 <body>
 
 <nav>
-    <div class="nav-item active" onclick="switchTab('gui')" title="GUI Maker">🔲</div>
-    <div class="nav-item" onclick="switchTab('cmd')" title="Command Generator">⚡</div>
-    <div class="nav-item" onclick="switchTab('recipe')" title="Recipe Creator">🛠️</div>
+    <div class="nav-item active" onclick="showTab('gui')" title="GUI Maker">🔲</div>
+    <div class="nav-item" onclick="showTab('tab')" title="TAB & Scoreboard">📋</div>
+    <div class="nav-item" onclick="showTab('motd')" title="MOTD Creator">📡</div>
+    <div class="nav-item" onclick="showTab('cmd')" title="Command Gen">⚡</div>
 </nav>
 
 <main>
     <header>
         <div class="brand">MC<span>DEVSUITE</span></div>
-        <div id="status-msg" style="color: var(--text-dim); font-size: 13px;">Editing: New Inventory</div>
+        <div id="hint" style="color: var(--text-dim); font-size: 12px;">Tool: GUI Architect v2.1</div>
     </header>
 
-    <div class="content-area">
-        <div id="tab-gui" class="tab-content active">
+    <div class="container">
+        <div id="view-gui" class="view active">
             <div class="sidebar">
-                <div class="scroll-box">
+                <div class="scroll-area">
                     <div class="input-group">
-                        <label>Search Items</label>
-                        <input type="text" id="search" placeholder="Diamond..." oninput="renderLibrary()">
+                        <label>Item Search</label>
+                        <input type="text" id="gui-search" placeholder="Type to filter..." oninput="renderLibrary()">
                     </div>
-                    <div class="item-library" id="library"></div>
+                    <div class="lib-grid" id="item-library"></div>
                 </div>
-                <div style="padding: 15px; border-top: 1px solid var(--border)">
-                    <div class="input-group">
-                        <label>Item Name</label>
-                        <input type="text" id="item-name" placeholder="&bMagic Sword" oninput="updateItemData()">
-                    </div>
-                    <button class="btn" style="width:100%" onclick="copyCode('gui-code')">Copy Java Code</button>
+                <div style="padding: 20px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.2);">
+                    <label>Selected Slot Properties</label>
+                    <input type="text" id="slot-name" placeholder="Display Name" oninput="saveSlotData()">
+                    <textarea id="slot-lore" rows="4" style="margin-top:10px" placeholder="Line 1&#10;Line 2" oninput="saveSlotData()"></textarea>
                 </div>
             </div>
-            
             <div class="canvas">
-                <input type="text" id="gui-title" value="My Custom Menu" style="background:transparent; border:none; text-align:center; font-size:24px; font-weight:bold; margin-bottom:20px;">
-                <div class="inventory-card">
-                    <div class="inv-grid" id="grid"></div>
+                <input type="text" id="gui-title" value="Menu Title" style="background:transparent; border:none; text-align:center; font-size:28px; margin-bottom:20px; color:var(--accent);">
+                <div class="inv-card">
+                    <div class="inv-grid" id="gui-grid"></div>
                 </div>
-                <div style="margin-top:20px;">
-                    <button class="btn" onclick="resizeGrid(27)">3 Rows</button>
-                    <button class="btn" onclick="resizeGrid(54)">6 Rows</button>
-                </div>
-                <div style="width: 80%; margin-top: 30px;">
-                    <div class="code-output" id="gui-code"></div>
+                <div style="margin-top:30px; width: 90%;">
+                    <div class="code-box" id="gui-code"></div>
                 </div>
             </div>
         </div>
 
-        <div id="tab-cmd" class="tab-content" style="padding: 40px; flex-direction: column; overflow-y: auto;">
-            <h2>Command Generator</h2>
+        <div id="view-tab" class="view" style="padding: 40px; flex-direction: column; overflow-y: auto;">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
-                <div>
+                <div class="card">
+                    <h3>Header & Footer</h3>
                     <div class="input-group">
-                        <label>Command Name</label>
-                        <input type="text" id="cmd-name" placeholder="heal" oninput="genCommand()">
+                        <label>Header Lines (JSON Array format)</label>
+                        <textarea id="tab-header" rows="3" oninput="genTabConfig()">"&bWelcome to &lMyServer", " ", "&7Online: &f%online%"</textarea>
                     </div>
                     <div class="input-group">
-                        <label>Permission</label>
-                        <input type="text" id="cmd-perm" placeholder="myplugin.heal" oninput="genCommand()">
+                        <label>Footer Lines</label>
+                        <textarea id="tab-footer" rows="3" oninput="genTabConfig()">"&7Visit &bwww.myserver.net", "&eStore: &fshop.myserver.net"</textarea>
                     </div>
-                    <div class="input-group">
-                        <label>Description</label>
-                        <input type="text" id="cmd-desc" placeholder="Heals the player" oninput="genCommand()">
-                    </div>
+                    <hr style="border-color: var(--border); margin: 20px 0;">
+                    <h3>Scoreboard</h3>
+                    <input type="text" id="sb-title" value="&e&lMY SERVER" oninput="genTabConfig()" style="margin-bottom: 10px;">
+                    <textarea id="sb-lines" rows="6" oninput="genTabConfig()">"&7%date%", " ", "&fRank: &b%group%", "&fPing: &a%ping%ms", " ", "&ewww.myserver.net"</textarea>
                 </div>
-                <div class="code-output" id="cmd-code" style="height: 400px;"></div>
+                <div>
+                    <label>Generated TAB Config (config.yml)</label>
+                    <div class="code-box" id="tab-code" style="height: 500px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-motd" class="view" style="padding: 40px; align-items: center; flex-direction: column;">
+            <div class="card" style="width: 700px;">
+                <h3>MOTD Designer</h3>
+                <input type="text" id="motd-1" maxlength="45" value="&b&lMy Minecraft Server" oninput="updateMOTD()" style="margin-bottom:10px;">
+                <input type="text" id="motd-2" maxlength="45" value="&7Join now for a &eunique &7experience!" oninput="updateMOTD()">
+            </div>
+            
+            <label>Live Preview (In-Game Look)</label>
+            <div class="motd-preview">
+                <div class="server-icon"></div>
+                <div class="motd-text" id="motd-display"></div>
+                <div style="color: #555;">5/100</div>
+            </div>
+
+            <div class="card" style="width: 700px; margin-top: 30px;">
+                <label>server.properties output</label>
+                <div class="code-box" id="motd-code"></div>
             </div>
         </div>
     </div>
 </main>
 
 <script>
-    // --- STATE MANAGEMENT ---
+    // --- ITEM DATABASE GENERATOR (1.21) ---
+    const ITEMS = [];
+    const buildDb = () => {
+        const mats = ['diamond','gold','iron','netherite','stone','wooden'];
+        const types = ['sword','pickaxe','axe','shovel','hoe','helmet','chestplate','leggings','boots'];
+        mats.forEach(m => types.forEach(t => ITEMS.push(`${m}_${t}`)));
+        ITEMS.push('mace','trial_key','breeze_rod','heavy_core','apple','totem_of_undying','elytra','chest','barrel','ender_pearl','tnt','experience_bottle');
+        ['white','red','blue','green','black','orange'].forEach(c => ITEMS.push(`${c}_wool`,`${c}_concrete`,`${c}_shulker_box`));
+        ITEMS.sort();
+    };
+    buildDb();
+
+    // --- STATE ---
     let state = {
-        currentTab: 'gui',
         brush: 'diamond_sword',
-        gridSize: 27,
-        inventory: {}, // slot index: {id, name, lore}
-        selectedSlot: null
+        grid: {}, // index: {id, name, lore}
+        selected: 0,
+        size: 54
     };
 
     const ASSET_URL = "https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/";
 
-    // --- CORE LOGIC ---
-    function switchTab(tabId) {
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    // --- TAB SYSTEM ---
+    function showTab(id) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        
-        document.getElementById('tab-' + tabId).classList.add('active');
+        document.getElementById('view-'+id).classList.add('active');
         event.currentTarget.classList.add('active');
-        state.currentTab = tabId;
+        if(id === 'tab') genTabConfig();
+        if(id === 'motd') updateMOTD();
     }
 
-    // --- GUI MAKER LOGIC ---
+    // --- GUI LOGIC ---
     function renderLibrary() {
-        const lib = document.getElementById('library');
-        const filter = document.getElementById('search').value.toLowerCase();
-        const items = ['diamond_sword', 'gold_ingot', 'apple', 'chest', 'cobblestone', 'emerald', 'iron_axe', 'barrier', 'paper', 'book'];
-        
+        const lib = document.getElementById('item-library');
+        const search = document.getElementById('gui-search').value.toLowerCase();
         lib.innerHTML = '';
-        items.filter(i => i.includes(filter)).forEach(item => {
+        ITEMS.filter(i => i.includes(search)).slice(0, 48).forEach(id => {
             const div = document.createElement('div');
-            div.className = `lib-icon ${state.brush === item ? 'active' : ''}`;
-            div.innerHTML = `<img src="${ASSET_URL}${item}.png" width="24">`;
-            div.onclick = () => { state.brush = item; renderLibrary(); };
+            div.className = 'lib-item';
+            div.innerHTML = `<img src="${ASSET_URL}${id}.png" width="24" title="${id}">`;
+            div.onclick = () => { state.brush = id; saveSlotData(); };
             lib.appendChild(div);
         });
     }
 
-    function resizeGrid(size) {
-        state.gridSize = size;
-        renderGrid();
-    }
-
     function renderGrid() {
-        const grid = document.getElementById('grid');
+        const grid = document.getElementById('gui-grid');
         grid.innerHTML = '';
-        for(let i=0; i<state.gridSize; i++) {
+        for(let i=0; i<state.size; i++) {
             const slot = document.createElement('div');
-            slot.className = 'slot';
-            if(state.inventory[i]) {
-                slot.innerHTML = `<img src="${ASSET_URL}${state.inventory[i].id}.png">`;
+            slot.className = `slot ${state.selected === i ? 'selected' : ''}`;
+            if(state.grid[i]) {
+                slot.innerHTML = `<img src="${ASSET_URL}${state.grid[i].id}.png">`;
             }
             slot.onclick = () => {
-                state.inventory[i] = { id: state.brush, name: '', lore: '' };
-                state.selectedSlot = i;
+                if(!state.grid[i]) state.grid[i] = { id: state.brush, name: '', lore: '' };
+                state.selected = i;
+                document.getElementById('slot-name').value = state.grid[i].name;
+                document.getElementById('slot-lore').value = state.grid[i].lore;
                 renderGrid();
                 updateGuiCode();
             };
             grid.appendChild(slot);
         }
+    }
+
+    function saveSlotData() {
+        if(state.grid[state.selected]) {
+            state.grid[state.selected].id = state.brush;
+            state.grid[state.selected].name = document.getElementById('slot-name').value;
+            state.grid[state.selected].lore = document.getElementById('slot-lore').value;
+        }
+        renderGrid();
         updateGuiCode();
     }
 
     function updateGuiCode() {
         const title = document.getElementById('gui-title').value;
-        let code = `// Generated by MC DevSuite\n`;
-        code += `Inventory inv = Bukkit.createInventory(null, ${state.gridSize}, "${title}");\n\n`;
-        
-        Object.keys(state.inventory).forEach(idx => {
-            const item = state.inventory[idx];
-            code += `ItemStack item${idx} = new ItemStack(Material.${item.id.toUpperCase()});\n`;
-            code += `inv.setItem(${idx}, item${idx});\n`;
+        let c = `public void openMenu(Player p) {\n    Inventory inv = Bukkit.createInventory(null, ${state.size}, "${title}");\n\n`;
+        Object.keys(state.grid).forEach(slot => {
+            const item = state.grid[slot];
+            c += `    ItemStack i${slot} = new ItemStack(Material.${item.id.toUpperCase()});\n`;
+            c += `    ItemMeta m${slot} = i${slot}.getItemMeta();\n`;
+            if(item.name) c += `    m${slot}.setDisplayName("${item.name.replace(/&/g,'§')}");\n`;
+            if(item.lore) {
+                const lines = item.lore.split('\n').map(l => `"${l.replace(/&/g,'§')}"`).join(', ');
+                c += `    m${slot}.setLore(Arrays.asList(${lines}));\n`;
+            }
+            c += `    i${slot}.setItemMeta(m${slot});\n    inv.setItem(${slot}, i${slot});\n\n`;
         });
+        c += `    p.openInventory(inv);\n}`;
+        document.getElementById('gui-code').innerText = c;
+    }
+
+    // --- TAB CONFIG GEN ---
+    function genTabConfig() {
+        const header = document.getElementById('tab-header').value;
+        const footer = document.getElementById('tab-footer').value;
+        const sbTitle = document.getElementById('sb-title').value;
+        const sbLines = document.getElementById('sb-lines').value;
+
+        const yaml = `header-footer:
+  enabled: true
+  designs:
+    default:
+      header:
+        - ${header.split('\n').join('\n        - ')}
+      footer:
+        - ${footer.split('\n').join('\n        - ')}
+
+scoreboard:
+  enabled: true
+  scoreboards:
+    default:
+      title: "${sbTitle}"
+      lines:
+        - ${sbLines.split('\n').join('\n        - ')}`;
         
-        document.getElementById('gui-code').innerText = code;
+        document.getElementById('tab-code').innerText = yaml;
     }
 
-    // --- COMMAND GENERATOR LOGIC ---
-    function genCommand() {
-        const name = document.getElementById('cmd-name').value || 'example';
-        const perm = document.getElementById('cmd-perm').value || 'plugin.use';
-        const desc = document.getElementById('cmd-desc').value || 'Description here';
+    // --- MOTD LOGIC ---
+    function updateMOTD() {
+        const l1 = document.getElementById('motd-1').value;
+        const l2 = document.getElementById('motd-2').value;
+        
+        const format = (t) => t.replace(/&([0-9a-fklmnor])/g, (match, p1) => {
+            const colors = {
+                '0':'#000','1':'#00a','2':'#0a0','3':'#0aa','4':'#a00','5':'#a0a','6':'#fa0','7':'#aaa',
+                '8':'#555','9':'#55f','a':'#5f5','b':'#5ff','c':'#f55','d':'#f5f','e':'#ff5','f':'#fff'
+            };
+            return `</span><span style="color:${colors[p1] || '#fff'}">`;
+        });
 
-        const code = `
-@Override
-public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-    if (!sender.hasPermission("${perm}")) {
-        sender.sendMessage("§cNo permission!");
-        return true;
-    }
-    
-    if (!(sender instanceof Player)) {
-        sender.sendMessage("Only players can use /${name}");
-        return true;
+        document.getElementById('motd-display').innerHTML = `<span>${format(l1)}</span><br><span>${format(l2)}</span>`;
+        document.getElementById('motd-code').innerText = `motd=${l1}\\n${l2}`;
     }
 
-    Player player = (Player) sender;
-    player.sendMessage("§aYou executed /${name}!");
-    
-    return true;
-}`;
-        document.getElementById('cmd-code').innerText = code.trim();
-    }
-
-    function copyCode(id) {
-        const text = document.getElementById(id).innerText;
-        navigator.clipboard.writeText(text);
-        alert("Code copied to clipboard!");
-    }
-
-    // Initialize
+    // INIT
     renderLibrary();
     renderGrid();
-    genCommand();
-
 </script>
 </body>
 </html>
