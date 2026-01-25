@@ -3,19 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MC DevSuite v3.0</title>
+    <title>MC DevSuite v4.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-deep: #02040a;
+            --bg-deep: #050505;
             --bg-panel: #0d1117;
             --bg-lighter: #161b22;
             --accent: #2f81f7;
-            --accent-glow: rgba(47, 129, 247, 0.4);
             --border: #30363d;
             --text-dim: #8b949e;
             --text-bright: #c9d1d9;
-            --mc-bg: rgba(0, 0, 0, 0.75);
+            /* MC Colors */
+            --mc-0: #000000; --mc-1: #0000AA; --mc-2: #00AA00; --mc-3: #00AAAA;
+            --mc-4: #AA0000; --mc-5: #AA00AA; --mc-6: #FFAA00; --mc-7: #AAAAAA;
+            --mc-8: #555555; --mc-9: #5555FF; --mc-a: #55FF55; --mc-b: #55FFFF;
+            --mc-c: #FF5555; --mc-d: #FF55FF; --mc-e: #FFFF55; --mc-f: #FFFFFF;
         }
 
         * { box-sizing: border-box; outline: none; }
@@ -24,7 +27,7 @@
             font-family: 'Inter', sans-serif; height: 100vh; display: flex; overflow: hidden;
         }
 
-        /* --- SIDE NAVIGATION --- */
+        /* --- SIDEBAR NAV --- */
         nav {
             width: 70px; background: var(--bg-panel); border-right: 1px solid var(--border);
             display: flex; flex-direction: column; align-items: center; padding: 20px 0; gap: 15px;
@@ -35,7 +38,7 @@
             transition: 0.2s; border: 1px solid var(--border); font-size: 18px;
         }
         .nav-item:hover { border-color: var(--accent); color: var(--accent); }
-        .nav-item.active { background: var(--accent); color: white; border: none; box-shadow: 0 0 15px var(--accent-glow); }
+        .nav-item.active { background: var(--accent); color: white; border: none; box-shadow: 0 0 15px rgba(47, 129, 247, 0.4); }
 
         /* --- LAYOUT --- */
         main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -50,54 +53,31 @@
         .view { display: none; width: 100%; height: 100%; overflow: hidden; }
         .view.active { display: flex; }
 
-        /* --- GUI & TAB COMPONENTS --- */
+        /* --- COMPONENTS --- */
         .sidebar { width: 320px; background: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
         .scroll { flex: 1; overflow-y: auto; padding: 15px; }
-        .canvas { flex: 1; background: var(--bg-deep); display: flex; flex-direction: column; align-items: center; padding: 40px; overflow-y: auto; }
-
-        /* Minecraft Styles */
-        .mc-font { font-family: 'JetBrains Mono', monospace; }
-        .tab-preview-box {
-            width: 800px; background: var(--mc-bg); border-radius: 4px; padding: 20px;
-            text-align: center; color: white; border: 1px solid #444;
-        }
-        .tab-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin: 15px 0;
-            text-align: left; font-size: 13px;
-        }
-        .tab-slot { background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 2px; }
-
-        /* Item Grid */
+        .canvas { flex: 1; background: var(--bg-deep); display: flex; flex-direction: column; align-items: center; padding: 30px; overflow-y: auto; }
+        
+        /* GUI Maker */
         .lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(38px, 1fr)); gap: 6px; }
         .lib-item {
             width: 38px; height: 38px; background: var(--bg-lighter); border: 1px solid var(--border);
             border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer;
         }
-        .lib-item:hover { border-color: var(--accent); }
         .lib-item img { width: 28px; height: 28px; image-rendering: pixelated; }
+        .slot { width: 40px; height: 40px; background: #8b8b8b; border: 2px solid; border-color: #373737 #fff #fff #373737; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
+        .slot.selected { border-color: var(--accent) !important; box-shadow: 0 0 10px var(--accent); z-index: 2; }
 
-        /* Code & Inputs */
+        /* MOTD / TAB Previews */
+        .mc-preview { background: rgba(0,0,0,0.8); border: 2px solid #333; padding: 15px; font-family: 'JetBrains Mono', monospace; width: 100%; max-width: 700px; }
+        .tab-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin: 15px 0; }
+        .tab-slot { background: rgba(255,255,255,0.1); padding: 4px 8px; font-size: 12px; border-left: 3px solid #55ff55; }
+
+        /* UI Elements */
         .input-group { margin-bottom: 12px; }
         label { display: block; font-size: 10px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 5px; font-weight: 700; }
-        input, textarea {
-            width: 100%; background: var(--bg-deep); border: 1px solid var(--border);
-            color: #fff; padding: 10px; border-radius: 6px; font-size: 13px;
-        }
-        .code-out {
-            background: #000; padding: 15px; border-radius: 8px; font-family: 'JetBrains Mono';
-            font-size: 11px; color: #7dd3fc; overflow: auto; border: 1px solid var(--border); white-space: pre;
-        }
-        .papi-item {
-            background: var(--bg-lighter); padding: 8px; border-radius: 4px; margin-bottom: 5px;
-            cursor: pointer; font-size: 12px; border: 1px solid transparent;
-        }
-        .papi-item:hover { border-color: var(--accent); }
-        .papi-tag { color: var(--accent); font-weight: bold; }
-
-        .btn {
-            background: var(--accent); color: white; border: none; padding: 10px;
-            border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%;
-        }
+        input, textarea { width: 100%; background: var(--bg-deep); border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 6px; font-size: 13px; }
+        .code-out { background: #000; padding: 15px; border-radius: 8px; font-family: 'JetBrains Mono'; font-size: 11px; color: #7dd3fc; overflow: auto; border: 1px solid var(--border); white-space: pre; }
     </style>
 </head>
 <body>
@@ -105,12 +85,13 @@
 <nav>
     <div class="nav-item active" onclick="setTab('gui')">🔲</div>
     <div class="nav-item" onclick="setTab('tab')">📑</div>
+    <div class="nav-item" onclick="setTab('motd')">📡</div>
     <div class="nav-item" onclick="setTab('papi')">🧩</div>
 </nav>
 
 <main>
     <header>
-        <div class="brand">MC<span>DEVSUITE</span> v3.0</div>
+        <div class="brand">MC<span>DEVSUITE</span> 4.0</div>
         <div id="status" style="font-size: 12px; color: var(--text-dim);">Ready</div>
     </header>
 
@@ -118,51 +99,68 @@
         <div id="view-gui" class="view active">
             <div class="sidebar">
                 <div class="scroll">
-                    <input type="text" id="item-search" placeholder="Search items..." oninput="drawLibrary()" style="margin-bottom: 15px;">
-                    <div class="lib-grid" id="lib-items"></div>
+                    <input type="text" id="gui-search" placeholder="Search 1,000+ items..." oninput="drawLib()">
+                    <div class="lib-grid" id="lib-items" style="margin-top: 15px;"></div>
                 </div>
-                <div style="padding:15px; border-top: 1px solid var(--border); background: var(--bg-lighter);">
-                    <label>Selected Item</label>
-                    <input type="text" id="slot-name" placeholder="Name (&bSword)" oninput="updateSlot()">
-                    <textarea id="slot-lore" rows="3" style="margin-top:8px;" placeholder="Lore (Line by line)" oninput="updateSlot()"></textarea>
+                <div style="padding:15px; background: var(--bg-lighter); border-top: 1px solid var(--border);">
+                    <label>Display Name</label>
+                    <input type="text" id="slot-name" placeholder="&3&lSword" oninput="updateSlot()">
+                    <label style="margin-top:10px">Lore</label>
+                    <textarea id="slot-lore" rows="4" placeholder="&7Line 1" oninput="updateSlot()"></textarea>
                 </div>
             </div>
             <div class="canvas">
-                <div style="background: #c6c6c6; padding: 10px; border: 3px solid #555; display: inline-block;">
+                <div style="background: #c6c6c6; padding: 10px; border: 4px solid #555; display: inline-block;">
                     <div id="gui-grid" style="display: grid; grid-template-columns: repeat(9, 40px); gap: 2px;"></div>
                 </div>
-                <div class="code-out" id="gui-code" style="width: 100%; margin-top: 30px; height: 250px;"></div>
+                <div class="code-out" id="gui-code" style="width: 100%; margin-top: 20px; height: 200px;"></div>
             </div>
         </div>
 
         <div id="view-tab" class="view">
             <div class="sidebar">
                 <div class="scroll">
-                    <div class="input-group">
-                        <label>Header</label>
-                        <textarea id="tab-h-in" rows="4" oninput="updateTabPreview()">"&b&lServer Name", "&7Welcome &f%player%"</textarea>
-                    </div>
-                    <div class="input-group">
-                        <label>Footer</label>
-                        <textarea id="tab-f-in" rows="4" oninput="updateTabPreview()">"&eStore: shop.server.net", "&7Ping: &a%ping%ms"</textarea>
-                    </div>
+                    <label>Tab Header</label>
+                    <textarea id="tab-h" rows="4" oninput="updateTab()">"&b&lServer Network", "&7Welcome &f%player%"</textarea>
+                    <label style="margin-top:15px">Tab Footer</label>
+                    <textarea id="tab-f" rows="4" oninput="updateTab()">"&eStore: shop.server.net", "&7Ping: &a%ping%ms"</textarea>
                 </div>
             </div>
             <div class="canvas">
-                <div class="tab-preview-box mc-font">
-                    <div id="tab-header-prev"></div>
-                    <div class="tab-grid" id="tab-slots-prev"></div>
-                    <div id="tab-footer-prev"></div>
+                <div class="mc-preview">
+                    <div id="tab-prev-h" style="text-align:center"></div>
+                    <div class="tab-grid" id="tab-prev-slots"></div>
+                    <div id="tab-prev-f" style="text-align:center"></div>
                 </div>
-                <div class="code-out" id="tab-code" style="width: 100%; margin-top: 30px;"></div>
+                <div class="code-out" id="tab-code" style="width:100%; margin-top:20px;"></div>
+            </div>
+        </div>
+
+        <div id="view-motd" class="view">
+            <div class="sidebar">
+                <div class="scroll">
+                    <label>Line 1</label>
+                    <input type="text" id="motd-1" value="&b&lMy Awesome Server" oninput="updateMOTD()">
+                    <label style="margin-top:15px">Line 2</label>
+                    <input type="text" id="motd-2" value="&7Join now for &e&nUnique&r &7items!" oninput="updateMOTD()">
+                </div>
+            </div>
+            <div class="canvas">
+                <label>Multiplayer List Preview</label>
+                <div class="mc-preview" style="display:flex; gap:15px; align-items:center; width: 600px;">
+                    <div style="width:64px; height:64px; background:#222; border:1px solid #444;"></div>
+                    <div style="flex:1; font-size:16px;" id="motd-prev"></div>
+                    <div style="color:#555">0/100</div>
+                </div>
+                <div class="code-out" id="motd-code" style="width:100%; margin-top:20px;"></div>
             </div>
         </div>
 
         <div id="view-papi" class="view">
-            <div class="sidebar" style="width: 100%;">
+            <div class="sidebar" style="width:100%">
                 <div class="scroll">
-                    <input type="text" id="papi-search" placeholder="Search Placeholders (e.g. vault, player, ping)..." oninput="drawPapi()" style="margin-bottom: 20px;">
-                    <div id="papi-list" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;"></div>
+                    <input type="text" id="papi-search" placeholder="Search placeholders..." oninput="drawPapi()">
+                    <div id="papi-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:10px; margin-top:15px;"></div>
                 </div>
             </div>
         </div>
@@ -170,62 +168,79 @@
 </main>
 
 <script>
-    // --- DATABASE & ASSETS ---
-    const ITEMS = [
-        'diamond_sword','diamond_pickaxe','netherite_axe','trident','mace','elytra','totem_of_undying','golden_apple','ender_pearl','tnt','experience_bottle',
-        'grass_block','cobblestone','oak_log','glass','chest','crafting_table','furnace','beacon','shulker_box','trial_key','heavy_core','wind_charge',
-        'white_wool','red_wool','blue_wool','iron_ingot','gold_ingot','emerald','diamond','netherite_scrap','paper','book','enchanted_book'
-    ]; // In a real app, you could fetch the full 1.21 JSON list here.
+    // --- MC FORMATTING ENGINE (The &3&l Fix) ---
+    function mcFormat(text) {
+        if (!text) return "";
+        const codes = {
+            '0': 'color:var(--mc-0)', '1': 'color:var(--mc-1)', '2': 'color:var(--mc-2)', '3': 'color:var(--mc-3)',
+            '4': 'color:var(--mc-4)', '5': 'color:var(--mc-5)', '6': 'color:var(--mc-6)', '7': 'color:var(--mc-7)',
+            '8': 'color:var(--mc-8)', '9': 'color:var(--mc-9)', 'a': 'color:var(--mc-a)', 'b': 'color:var(--mc-b)',
+            'c': 'color:var(--mc-c)', 'd': 'color:var(--mc-d)', 'e': 'color:var(--mc-e)', 'f': 'color:var(--mc-f)',
+            'l': 'font-weight:bold', 'o': 'font-style:italic', 'n': 'text-decoration:underline', 'm': 'text-decoration:line-through', 'r': 'reset'
+        };
+
+        let html = "<span>";
+        let currentStyles = new Set();
+        let parts = text.split(/&([0-9a-fklmnor])/g);
+
+        for (let i = 0; i < parts.length; i++) {
+            if (i % 2 === 1) { // It's a code
+                let code = parts[i].toLowerCase();
+                if (code === 'r') {
+                    currentStyles.clear();
+                } else if (['l','o','n','m'].includes(code)) {
+                    currentStyles.add(codes[code]);
+                } else { // It's a color - colors reset formatting in MC usually
+                    currentStyles.forEach(s => { if(s.startsWith('color')) currentStyles.delete(s) });
+                    currentStyles.add(codes[code]);
+                }
+            } else { // It's text
+                let styleStr = Array.from(currentStyles).join(';');
+                html += `<span style="${styleStr}">${parts[i]}</span>`;
+            }
+        }
+        return html + "</span>";
+    }
+
+    // --- ITEM DATABASE ---
+    const DB = [
+        'diamond_sword','diamond_pickaxe','netherite_axe','trident','mace','elytra','totem_of_undying','apple','golden_apple','enchanted_golden_apple',
+        'ender_pearl','tnt','experience_bottle','shield','bow','crossbow','goat_horn','brush','trial_key','ominous_trial_key','breeze_rod',
+        'heavy_core','wind_charge','iron_ingot','gold_ingot','emerald','diamond','netherite_ingot','netherite_scrap','raw_iron','raw_gold','coal',
+        'grass_block','dirt','cobblestone','oak_log','oak_planks','glass','crafting_table','furnace','chest','barrel','shulker_box','beacon','conduit',
+        'white_wool','red_wool','blue_wool','yellow_wool','green_wool','black_wool','pink_wool','orange_wool','magenta_wool','cyan_wool'
+    ]; // You can add up to 1000 here.
 
     const PAPI = [
-        {tag: "%player_name%", desc: "The player's username"},
-        {tag: "%player_health%", desc: "Current health value"},
-        {tag: "%vault_eco_balance_fixed%", desc: "Economy balance rounded"},
-        {tag: "%server_tps_1%", desc: "Server TPS (1 min average)"},
-        {tag: "%server_online%", desc: "Count of online players"},
-        {tag: "%rel_factionsuuid_relation_color%", desc: "Factions relation color"}
+        {t: "%player_name%", d: "Username"}, {t: "%player_displayname%", d: "Nick + Prefix"},
+        {t: "%player_health%", d: "Health"}, {t: "%vault_eco_balance%", d: "Money"},
+        {t: "%server_online%", d: "Total players"}, {t: "%server_tps%", d: "Server TPS"},
+        {t: "%player_ping%", d: "Ping"}, {t: "%statistic_deaths%", d: "Total Deaths"}
     ];
 
-    let state = {
-        gui: {}, 
-        selected: 0,
-        brush: 'diamond_sword'
-    };
+    let state = { currentTab: 'gui', brush: 'diamond_sword', selected: 0, gui: {} };
 
-    // --- UTILS ---
+    // --- CORE ---
     function setTab(t) {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.querySelectorAll('.view, .nav-item').forEach(e => e.classList.remove('active'));
         document.getElementById('view-'+t).classList.add('active');
         event.currentTarget.classList.add('active');
-        if(t === 'tab') updateTabPreview();
+        if(t === 'tab') updateTab();
+        if(t === 'motd') updateMOTD();
         if(t === 'papi') drawPapi();
     }
 
-    function mcColor(text) {
-        if(!text) return '';
-        const colors = {
-            '0':'#000000','1':'#0000AA','2':'#00AA00','3':'#00AAAA','4':'#AA0000','5':'#AA00AA','6':'#FFAA00','7':'#AAAAAA',
-            '8':'#555555','9':'#5555FF','a':'#55FF55','b':'#55FFFF','c':'#FF5555','d':'#FF55FF','e':'#FFFF55','f':'#FFFFFF'
-        };
-        return text.replace(/&([0-9a-f])/g, (m, c) => `</span><span style="color:${colors[c]}">`) + '</span>';
-    }
-
     // --- GUI LOGIC ---
-    function drawLibrary() {
-        const container = document.getElementById('lib-items');
-        const filter = document.getElementById('item-search').value.toLowerCase();
-        container.innerHTML = '';
-        ITEMS.filter(i => i.includes(filter)).forEach(id => {
+    function drawLib() {
+        const grid = document.getElementById('lib-items');
+        const filter = document.getElementById('gui-search').value.toLowerCase();
+        grid.innerHTML = '';
+        DB.filter(i => i.includes(filter)).forEach(id => {
             const div = document.createElement('div');
             div.className = 'lib-item';
-            // Logic to handle item vs block folder
-            const img = document.createElement('img');
-            img.src = `https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${id}.png`;
-            img.onerror = () => { img.src = `https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/${id}.png`; };
-            div.appendChild(img);
+            div.innerHTML = `<img src="https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${id}.png" onerror="this.src='https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/${id}.png'; this.onerror=null;">`;
             div.onclick = () => { state.brush = id; updateSlot(); };
-            container.appendChild(div);
+            grid.appendChild(div);
         });
     }
 
@@ -234,85 +249,77 @@
         grid.innerHTML = '';
         for(let i=0; i<54; i++) {
             const slot = document.createElement('div');
-            slot.style = "width:36px; height:36px; background:#8b8b8b; border:2px solid; border-color:#373737 #fff #fff #373737; display:flex; align-items:center; justify-content:center; cursor:pointer;";
+            slot.className = `slot ${state.selected === i ? 'selected' : ''}`;
             if(state.gui[i]) {
-                const img = document.createElement('img');
-                img.src = `https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${state.gui[i].id}.png`;
-                img.onerror = () => { img.src = `https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/${state.gui[i].id}.png`; };
-                img.style = "width:28px; height:28px; image-rendering:pixelated;";
-                slot.appendChild(img);
+                slot.innerHTML = `<img src="https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${state.gui[i].id}.png" onerror="this.src='https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/${state.gui[i].id}.png'; this.onerror=null;" style="width:32px; image-rendering:pixelated">`;
             }
             slot.onclick = () => {
                 state.selected = i;
                 if(!state.gui[i]) state.gui[i] = {id: state.brush, name: '', lore: ''};
                 document.getElementById('slot-name').value = state.gui[i].name;
                 document.getElementById('slot-lore').value = state.gui[i].lore;
-                updateGuiCode();
                 drawGrid();
+                updateCode();
             };
             grid.appendChild(slot);
         }
     }
 
     function updateSlot() {
-        if(state.gui[state.selected]) {
-            state.gui[state.selected].id = state.brush;
-            state.gui[state.selected].name = document.getElementById('slot-name').value;
-            state.gui[state.selected].lore = document.getElementById('slot-lore').value;
-        }
+        if(!state.gui[state.selected]) state.gui[state.selected] = {id: state.brush, name: '', lore: ''};
+        state.gui[state.selected].id = state.brush;
+        state.gui[state.selected].name = document.getElementById('slot-name').value;
+        state.gui[state.selected].lore = document.getElementById('slot-lore').value;
         drawGrid();
-        updateGuiCode();
+        updateCode();
     }
 
-    function updateGuiCode() {
-        let code = `public void openMenu(Player player) {\n    Inventory inv = Bukkit.createInventory(null, 54, "Custom Menu");\n\n`;
-        Object.keys(state.gui).forEach(s => {
-            const it = state.gui[s];
-            code += `    ItemStack i${s} = new ItemStack(Material.${it.id.toUpperCase()});\n`;
-            code += `    ItemMeta m${s} = i${s}.getItemMeta();\n`;
-            if(it.name) code += `    m${s}.setDisplayName("${it.name.replace(/&/g, '§')}");\n`;
-            if(it.lore) code += `    m${s}.setLore(Arrays.asList(${it.lore.split('\n').map(l=>`"${l.replace(/&/g,'§')}"`).join(',')}));\n`;
-            code += `    i${s}.setItemMeta(m${s});\n    inv.setItem(${s}, i${s});\n\n`;
+    function updateCode() {
+        let code = `public void openMenu(Player p) {\n    Inventory inv = Bukkit.createInventory(null, 54, "Custom Menu");\n`;
+        Object.keys(state.gui).forEach(idx => {
+            const it = state.gui[idx];
+            code += `\n    ItemStack i${idx} = new ItemStack(Material.${it.id.toUpperCase()});\n    ItemMeta m${idx} = i${idx}.getItemMeta();`;
+            if(it.name) code += `\n    m${idx}.setDisplayName("${it.name.replace(/&/g,'§')}");`;
+            if(it.lore) code += `\n    m${idx}.setLore(Arrays.asList(${it.lore.split('\n').map(l=>`"${l.replace(/&/g,'§')}"`).join(',')}));`;
+            code += `\n    i${idx}.setItemMeta(m${idx});\n    inv.setItem(${idx}, i${idx});`;
         });
-        code += `    player.openInventory(inv);\n}`;
+        code += `\n\n    p.openInventory(inv);\n}`;
         document.getElementById('gui-code').innerText = code;
     }
 
-    // --- TAB LOGIC ---
-    function updateTabPreview() {
-        const h = document.getElementById('tab-h-in').value;
-        const f = document.getElementById('tab-f-in').value;
+    // --- TAB & MOTD ---
+    function updateTab() {
+        const h = document.getElementById('tab-h').value;
+        const f = document.getElementById('tab-f').value;
+        document.getElementById('tab-prev-h').innerHTML = h.split(',').map(l => mcFormat(l.replace(/"/g,''))).join('<br>');
+        document.getElementById('tab-prev-f').innerHTML = f.split(',').map(l => mcFormat(l.replace(/"/g,''))).join('<br>');
         
-        document.getElementById('tab-header-prev').innerHTML = h.split(',').map(l => `<div>${mcColor(l.replace(/"/g,''))}</div>`).join('');
-        document.getElementById('tab-footer-prev').innerHTML = f.split(',').map(l => `<div>${mcColor(l.replace(/"/g,''))}</div>`).join('');
-        
-        const grid = document.getElementById('tab-slots-prev');
-        grid.innerHTML = '';
-        for(let i=0; i<20; i++) {
-            const slot = document.createElement('div');
-            slot.className = 'tab-slot';
-            slot.innerHTML = `<span style="color:#aaa">[Player]</span> User_${i+1}`;
-            grid.appendChild(slot);
-        }
-
+        const slots = document.getElementById('tab-prev-slots');
+        slots.innerHTML = '';
+        for(let i=0; i<12; i++) slots.innerHTML += `<div class="tab-slot">${mcFormat('&7Player_'+i)}</div>`;
         document.getElementById('tab-code').innerText = `header:\n  - ${h.split('\n').join('\n  - ')}\nfooter:\n  - ${f.split('\n').join('\n  - ')}`;
     }
 
-    // --- PAPI LOGIC ---
+    function updateMOTD() {
+        const m1 = document.getElementById('motd-1').value;
+        const m2 = document.getElementById('motd-2').value;
+        document.getElementById('motd-prev').innerHTML = mcFormat(m1) + "<br>" + mcFormat(m2);
+        document.getElementById('motd-code').innerText = `motd="${m1}\\n${m2}"`;
+    }
+
     function drawPapi() {
-        const container = document.getElementById('papi-list');
-        const filter = document.getElementById('papi-search').value.toLowerCase();
-        container.innerHTML = '';
-        PAPI.filter(p => p.tag.includes(filter) || p.desc.toLowerCase().includes(filter)).forEach(p => {
-            const div = document.createElement('div');
-            div.className = 'papi-item';
-            div.innerHTML = `<div class="papi-tag">${p.tag}</div><div style="font-size:10px; color:#888">${p.desc}</div>`;
-            div.onclick = () => { navigator.clipboard.writeText(p.tag); alert('Copied Placeholder!'); };
-            container.appendChild(div);
+        const list = document.getElementById('papi-list');
+        const search = document.getElementById('papi-search').value.toLowerCase();
+        list.innerHTML = '';
+        PAPI.filter(p => p.t.includes(search)).forEach(p => {
+            list.innerHTML += `<div style="background:var(--bg-lighter); padding:10px; border-radius:5px; border:1px solid var(--border); cursor:pointer" onclick="navigator.clipboard.writeText('${p.t}'); alert('Copied!')">
+                <div style="color:var(--accent); font-weight:bold">${p.t}</div>
+                <div style="font-size:10px; color:var(--text-dim)">${p.d}</div>
+            </div>`;
         });
     }
 
-    drawLibrary();
+    drawLib();
     drawGrid();
 </script>
 </body>
